@@ -108,7 +108,7 @@ class CustomFigCanvas(FigureCanvas, TimedAnimation):
         self.ax1.add_line(self.line1_tail)
         self.ax1.add_line(self.line1_head)
         self.ax1.set_xlim(0, self.xlim - 1)
-        self.ax1.set_ylim(-5, 5)
+        self.ax1.set_ylim(-10.5, 10.5)
         FigureCanvas.__init__(self, self.fig)
         TimedAnimation.__init__(self, self.fig, interval=1, blit=True)
 
@@ -191,10 +191,10 @@ runtime = 10  # seconds
 column_names = [
     'Load Cell',
     'Chamber Pressure',
-    'Tank Pressure'
+    'Tank Temperature'
 ]
 
-nchan = len(column_names) # Number of channels to measure
+nchan = len(column_names)  # Number of channels to measure
 
 if frequency < 100:
     options = usb20x.IMMEDIATE_TRANSFER_MODE
@@ -213,7 +213,7 @@ fcntl.fcntl(sys.stdin, fcntl.F_SETFL, flag | os.O_NONBLOCK)
 
 data = pd.DataFrame(columns=column_names)
 
-if __name__== '__main__':
+if __name__ == '__main__':
     app = QApplication(sys.argv)
     QApplication.setStyle(QStyleFactory.create('Plastique'))
     myGUI = CustomMainWindow()
