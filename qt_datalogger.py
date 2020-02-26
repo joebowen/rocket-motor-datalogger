@@ -82,6 +82,7 @@ class CustomMainWindow(QMainWindow):
             axis[index].set_xlabel('Seconds')
             axis[index].set_ylabel('Voltage')
             axis[index].set_title(column_name)
+            axis[index].set_ylim([-10,10])
 
         fig.savefig(f'output_data/test-{timestamp}.pdf', dpi=500)
 
