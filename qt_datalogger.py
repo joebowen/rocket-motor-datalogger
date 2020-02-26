@@ -40,7 +40,7 @@ class CustomMainWindow(QMainWindow):
         self.setWindowTitle("Load Cell Test")
         # Create FRAME_A
         self.FRAME_A = QFrame(self)
-        self.FRAME_A.setStyleSheet("QWidget { background-color: %s }" % QColor(210,210,235,255).name())
+        self.FRAME_A.setStyleSheet("QWidget { background-color: %s }" % QColor(210, 210, 235, 255).name())
         self.LAYOUT_A = QGridLayout()
         self.FRAME_A.setLayout(self.LAYOUT_A)
         self.setCentralWidget(self.FRAME_A)
@@ -51,7 +51,7 @@ class CustomMainWindow(QMainWindow):
             self.LAYOUT_A.addWidget(self.myFigs[index], *(index,1))
 
         # Add the callbackfunc to ..
-        myDataLoop = threading.Thread(name = 'myDataLoop', target = dataSendLoop, daemon = True, args = (self.addData_callbackFunc,))
+        myDataLoop = threading.Thread(name='myDataLoop', target=dataSendLoop, daemon=True, args=(self.addData_callbackFunc,))
         myDataLoop.start()
         self.show()
 
@@ -96,7 +96,7 @@ class CustomFigCanvas(FigureCanvas, TimedAnimation):
         self.n = np.linspace(0, self.xlim - 1, self.xlim)
         self.y = (self.n * 0.0) + 50
         # The window
-        self.fig = Figure(figsize=(5,5), dpi=100)
+        self.fig = Figure(figsize=(5, 5), dpi=100)
         self.ax1 = self.fig.add_subplot(111)
         # self.ax1 settings
         self.ax1.set_xlabel('time')
@@ -165,7 +165,7 @@ def dataSendLoop(addData_callbackFunc):
     mySrc = Communicate()
     mySrc.data_signal.connect(addData_callbackFunc)
 
-    start_time = time.time()
+    timestamp = 0
 
     while True:  # start_time > time.time() - runtime:
         raw_data = usb20x.AInScanRead(128)
@@ -175,8 +175,8 @@ def dataSendLoop(addData_callbackFunc):
                 for chan_index in range(nchan):
                     voltage.append(usb20x.volts(raw_data[(index * nchan) + chan_index]))
 
-                timestamp = time.time()
-                temp_df = pd.DataFrame([voltage], columns=column_names, index=[timestamp - start_time])
+                timestamp += 1
+                temp_df = pd.DataFrame([voltage], columns=column_names, index=[timestamp / frequency])
 
                 data = pd.concat([data, temp_df])
 
@@ -185,13 +185,13 @@ def dataSendLoop(addData_callbackFunc):
 
 usb20x = usb_204()
 
-frequency = 1000  # Hz
+frequency = 500  # Hz
 runtime = 10  # seconds
 
 column_names = [
-    'Load Cell',
     'Chamber Pressure',
-    'Tank Temperature'
+    'Tank Temperature',
+    'Load Cell'
 ]
 
 nchan = len(column_names)  # Number of channels to measure
