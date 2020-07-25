@@ -429,7 +429,17 @@ class usb_20x(mccUSB):
         scanPacket = pack('IIBBBB', count, pacer_period, channels, options, trigger_source, trigger_mode)
         result = self.udev.controlWrite(request_type, self.AIN_SCAN_START, 0x0, 0x0, scanPacket, timeout=200)
 
+        return result
+
     def AInScanRead(self, nScan):
+        status = self.Status()
+        try:
+            if status & self.AIN_SCAN_OVERRUN:
+                raise OverrunError
+        except:
+            print(f'AInScanRead: Overrun Error... status: {status}')
+            raise
+
         nSamples = int(nScan * self.nChan)
         data = []
         if self.options & self.IMMEDIATE_TRANSFER_MODE:
@@ -438,30 +448,22 @@ class usb_20x(mccUSB):
                     timeout = int(1000 * self.nChan / self.frequency + 100)
                     data.extend(unpack('H', self.udev.bulkRead(libusb1.LIBUSB_ENDPOINT_IN | 1, 2 * self.nChan, timeout)))
                 except:
-                    print('AInScanRead: error in bulk transfer in immmediate transfer mode.')
-                    return
+                    print('AInScanRead: error in bulk transfer in immediate transfer mode.')
+                    raise
         else:
             try:
                 timeout = int(1000 * self.nChan * nScan / self.frequency + 1000)
                 data = unpack('H' * nSamples, self.udev.bulkRead(libusb1.LIBUSB_ENDPOINT_IN | 1, int(2 * nSamples), timeout))
             except:
                 print('AInScanRead: error in bulk transfer!', len(data), nSamples)
-                return
-
-        status = self.Status()
-        try:
-            if status & self.AIN_SCAN_OVERRUN:
-                raise OverrunERROR
-        except:
-            print('AInScanRead: Overrun Error')
-            return
+                raise
 
         if self.continuous_mode:
             return list(data)
 
         # if nbytes is a multiple of wMaxPacketSize the device will send a zero byte packet.
         if ((int(nSamples * 2) % self.wMaxPacketSize) == 0 and not (status & self.AIN_SCAN_RUNNING)):
-            data2 = self.udev.bulkRead(libusb1.LIBUSB_ENDPOINT_IN | 1, 2, 100)
+            data = self.udev.bulkRead(libusb1.LIBUSB_ENDPOINT_IN | 1, 2, 100)
 
         self.AInScanStop()
         self.AInScanClearFIFO()

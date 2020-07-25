@@ -36,7 +36,7 @@ class CustomMainWindow(QMainWindow):
 
         super(CustomMainWindow, self).__init__()
         # Define the geometry of the main window
-        self.setGeometry(300, 300, 800, 400)
+        self.setGeometry(300, 300, 2000, 1000)
         self.setWindowTitle("Load Cell Test")
         # Create FRAME_A
         self.FRAME_A = QFrame(self)
@@ -82,7 +82,7 @@ class CustomMainWindow(QMainWindow):
             axis[index].set_xlabel('Seconds')
             axis[index].set_ylabel('Voltage')
             axis[index].set_title(column_name)
-            axis[index].set_ylim([-10,10])
+            axis[index].set_ylim([-12, 12])
 
         fig.savefig(f'output_data/test-{timestamp}.pdf', dpi=500)
 
@@ -168,31 +168,35 @@ def dataSendLoop(addData_callbackFunc):
 
     timestamp = 0
 
-    while True:  # start_time > time.time() - runtime:
-        raw_data = usb20x.AInScanRead(128)
-        if raw_data and isinstance(raw_data, list):
-            for index in range(int(len(raw_data) / nchan)):
-                voltage = list()
-                for chan_index in range(nchan):
-                    voltage.append(usb20x.volts(raw_data[(index * nchan) + chan_index]))
+    try:
+        while True:  # start_time > time.time() - runtime:
+            raw_data = usb20x.AInScanRead(256)
+            if raw_data and isinstance(raw_data, list):
+                for index in range(int(len(raw_data) / nchan)):
+                    voltage = list()
+                    for chan_index in range(nchan):
+                        voltage.append(usb20x.volts(raw_data[(index * nchan) + chan_index]))
 
-                timestamp += 1
-                temp_df = pd.DataFrame([voltage], columns=column_names, index=[timestamp / frequency])
+                    timestamp += 1
+                    temp_df = pd.DataFrame([voltage], columns=column_names, index=[timestamp / frequency])
 
-                data = pd.concat([data, temp_df])
+                    data = pd.concat([data, temp_df])
 
-                mySrc.data_signal.emit(voltage)  # <- Here you emit a signal!
-
+                    mySrc.data_signal.emit(voltage)  # <- Here you emit a signal!
+    except:
+        usb20x.Reset()
 
 usb20x = usb_204()
 
-frequency = 500  # Hz
+frequency = 2000  # Hz
 runtime = 10  # seconds
 
 column_names = [
+    'Load Cell',
     'Chamber Pressure',
-    'Tank Temperature',
-    'Load Cell'
+    'Tank Pressure',
+    'Second Temperature',
+    'Tank Temperature'
 ]
 
 nchan = len(column_names)  # Number of channels to measure
@@ -200,7 +204,7 @@ nchan = len(column_names)  # Number of channels to measure
 if frequency < 100:
     options = usb20x.IMMEDIATE_TRANSFER_MODE
 else:
-    options = 0x0
+    options = usb20x.STALL_ON_OVERRUN
 
 channels = 0
 for i in range(nchan):
