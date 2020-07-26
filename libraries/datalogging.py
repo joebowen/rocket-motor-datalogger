@@ -94,7 +94,7 @@ class DataLogger:
 
         print(f'Time since last restart: {int(time_since_restart)} seconds or {int(time_since_restart / 60)} minutes')
         print(f'Recorded time: {int(self.timestamp / self.frequency)} seconds or {int(self.timestamp / self.frequency / 60)} minutes')
-        print(f'Time since last restart minus recorded time: {int(time_since_restart - (self.timestamp / self.frequency)) }')
+        print(f'Time since last restart minus recorded time: {int(time_since_restart - (self.timestamp / self.frequency))} seconds')
         print(f'Number of bulk transfers: {self.transfer_count}')
 
         self.usb20x.Reset()
