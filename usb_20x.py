@@ -15,7 +15,6 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import libusb1
 import usb1
 import time
 import sys
@@ -180,6 +179,8 @@ class usb_20x(mccUSB):
         #  table_AIn[NGAIN]
         self.table_AIn = [table(), table(), table(), table(), table(), table(), table(), table()]
         self.BuildGainTable()
+
+        super().__init__()
 
     def BuildGainTable(self):
         """
@@ -397,7 +398,7 @@ class usb_20x(mccUSB):
                         3: Level/low
         """
 
-        if frequency > 500000. and self.productID == USB_205_PID:
+        if frequency > 500000. and self.productID == self.USB_205_PID:
             frequency = 500000.
         elif frequency > 100000.:
             frequency = 100000
@@ -441,14 +442,14 @@ class usb_20x(mccUSB):
             for i in range(nSamples):
                 try:
                     timeout = int(1000 * self.nChan / self.frequency + 100)
-                    data.extend(unpack('H', self.udev.bulkRead(libusb1.LIBUSB_ENDPOINT_IN | 1, 2 * self.nChan, timeout)))
+                    data.extend(unpack('H', self.udev.bulkRead(usb1.ENDPOINT_IN | 1, int(2 * self.nChan), timeout)))
                 except:
                     print('AInScanRead: error in bulk transfer in immediate transfer mode.')
                     raise
         else:
             try:
                 timeout = int(1000 * self.nChan * nScan / self.frequency + 1000)
-                data = unpack('H' * nSamples, self.udev.bulkRead(libusb1.LIBUSB_ENDPOINT_IN | 1, int(2 * nSamples), timeout))
+                data = unpack('H' * nSamples, self.udev.bulkRead(usb1.ENDPOINT_IN | 1, int(2 * nSamples), timeout))
             except:
                 print('AInScanRead: error in bulk transfer!', len(data), nSamples)
                 raise
@@ -457,8 +458,8 @@ class usb_20x(mccUSB):
             return list(data)
 
         # if nbytes is a multiple of wMaxPacketSize the device will send a zero byte packet.
-        if ((int(nSamples * 2) % self.wMaxPacketSize) == 0 and not (status & self.AIN_SCAN_RUNNING)):
-            data = self.udev.bulkRead(libusb1.LIBUSB_ENDPOINT_IN | 1, 2, 100)
+        if (int(nSamples * 2) % self.wMaxPacketSize) == 0 and not (status & self.AIN_SCAN_RUNNING):
+            data = self.udev.bulkRead(usb1.ENDPOINT_IN | 1, 2, 100)
 
         self.AInScanStop()
         self.AInScanClearFIFO()
