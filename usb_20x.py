@@ -272,13 +272,11 @@ class usb_20x(mccUSB):
         value, = self.udev.controlRead(request_type, self.DPORT, wValue, wIndex, 1, self.HS_DELAY)
         return value
 
-    def DPortW(self):
+    def DPortW(self, value, request):
         """
         This command reads the current state of the digital pins or writes to the latch register.
         """
         request_type = (HOST_TO_DEVICE | VENDOR_TYPE | DEVICE_RECIPIENT)
-        wValue = 0
-        wIndex = 0
         wValue = value & 0xff
         wIndex = 0
         self.udev.controlWrite(request_type, request, wValue, wIndex, [0x0], self.HS_DELAY)
@@ -617,7 +615,6 @@ class usb_20x(mccUSB):
         except:
             print("UserMemoryW: controlWrite error")
 
-
     def MBDMemoryR(self, address, count):
         """
         This command allows for reading and writing the nonvolite
@@ -641,7 +638,7 @@ class usb_20x(mccUSB):
         except:
             print("MBDMemoryR: controlRead error")
 
-    def MBDMemoyrW(self, address, data):
+    def MBDMemoyrW(self, address, data, count):
         request_type = (HOST_TO_DEVICE | VENDOR_TYPE | DEVICE_RECIPIENT)
         wValue = address & 0xffff  # force to be 16 bits
         wIndex = 0

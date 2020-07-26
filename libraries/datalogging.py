@@ -12,11 +12,12 @@ from matplotlib import pyplot as plt
 
 
 class DataLogger:
-    def __init__(self, frequency, column_names, debug=False):
+    def __init__(self, frequency, column_names, batch_exp=10, debug=False):
         self.debug = debug
 
         self.usb20x = usb_204()
 
+        self.batch_exp = batch_exp
         self.frequency = frequency
         self.column_names = column_names
 
@@ -68,7 +69,7 @@ class DataLogger:
             pass
 
     def collect_data(self, pyqt_callback=None):
-        raw_data = self.usb20x.AInScanRead(2**10)
+        raw_data = self.usb20x.AInScanRead(2**self.batch_exp)
 
         if raw_data and isinstance(raw_data, list):
             for index in range(int(len(raw_data) / self.nchan)):
