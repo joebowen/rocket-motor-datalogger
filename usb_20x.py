@@ -243,7 +243,6 @@ class usb_20x(mccUSB):
         onto the port pin.  A '1' in the tristate register makes the
         corresponding pin an input, a '0' makes it an output_data.
         """
-
         request_type = (DEVICE_TO_HOST | VENDOR_TYPE | DEVICE_RECIPIENT)
         wValue = 0
         wIndex = 0
@@ -257,7 +256,6 @@ class usb_20x(mccUSB):
         onto the port pin.  A '1' in the tristate register makes the
         corresponding pin an input, a '0' makes it an output_data.
         """
-
         request_type = (HOST_TO_DEVICE | VENDOR_TYPE | DEVICE_RECIPIENT)
         request = self.DTRISTATE
         wValue = value & 0xff
@@ -284,7 +282,6 @@ class usb_20x(mccUSB):
         wValue = value & 0xff
         wIndex = 0
         self.udev.controlWrite(request_type, request, wValue, wIndex, [0x0], self.HS_DELAY)
-        return
 
     def DLatchR(self):
         """
@@ -323,9 +320,9 @@ class usb_20x(mccUSB):
         wIndex = 0x0
         value, = unpack('H', self.udev.controlRead(request_type, self.AIN, wValue, wIndex, 2, timeout=100))
         data = round(float(value) * self.table_AIn[channel].slope + self.table_AIn[channel].intercept)
-        if (data >= 65536):
+        if data >= 65536:
             value = 65535
-        elif (data < 0):
+        elif data < 0:
             value = 0
         else:
             value = data
@@ -473,12 +470,13 @@ class usb_20x(mccUSB):
         """
         This command stops the analog input scan (if running).
         """
-
         request_type = (HOST_TO_DEVICE | VENDOR_TYPE | DEVICE_RECIPIENT)
         request = self.AIN_SCAN_STOP
         wValue = 0x0
         wIndex = 0x0
         result = self.udev.controlWrite(request_type, request, wValue, wIndex, [0x0], timeout=100)
+
+        return result
 
     def AInScanClearFIFO(self):
         """
@@ -490,6 +488,8 @@ class usb_20x(mccUSB):
         wIndex = 0x0
         result = self.udev.controlWrite(request_type, request, wValue, wIndex, [0x0], timeout=100)
 
+        return result
+
     def BulkFlush(self, count=1):
         """
         This command will send a specified number of empty BULK IN packets
@@ -498,7 +498,9 @@ class usb_20x(mccUSB):
         request = self.AIN_BULK_FLUSH
         wValue = count
         wIndex = 0x0
-        self.udev.controlWrite(request_type, request, wValue, wIndex, [0x0], self.HS_DELAY)
+        result = self.udev.controlWrite(request_type, request, wValue, wIndex, [0x0], self.HS_DELAY)
+
+        return result
 
     #############################################
     #           Counter Commands                #
@@ -512,6 +514,7 @@ class usb_20x(mccUSB):
         wValue = 0
         wIndex = 0
         count, = unpack('I', self.udev.controlRead(request_type, self.COUNTER, wValue, wIndex, 4, timeout=100))
+
         return count
 
     def ResetCounter(self):
@@ -523,6 +526,8 @@ class usb_20x(mccUSB):
         wValue = 0
         wIndex = 0
         result = self.udev.controlWrite(request_type, request, wValue, wIndex, [0x0], timeout=100)
+
+        return result
 
     #############################################
     #        Memory Commands                    #
@@ -537,24 +542,21 @@ class usb_20x(mccUSB):
         then possible.  Write any other value to address 0x300 to lock
         the memory after writing.
         """
-        request_type = (DEVICE_TO_HOST | VENDOR_TYPE | DEVICE_RECIPIENT)
-
         if count > 768:
             raise ValueError('CalMemoryR: max bytes that can be read is 768.')
-            return
 
         if address > 0x2ff:
             raise ValueError('CalMemoryR: address must be in the range 0 - 0x2FF.')
-            return
 
         request_type = (DEVICE_TO_HOST | VENDOR_TYPE | DEVICE_RECIPIENT)
         wValue = address & 0xffff  # force to be 16 bits
         wIndex = 0
         try:
             result = self.udev.controlRead(request_type, self.CAL_MEMORY, wValue, wIndex, count, timeout=100)
+
+            return result
         except:
             print("MemoryR: controlRead error")
-        return result
 
     def CalMemoyrW(self, address, count, data):
         request_type = (HOST_TO_DEVICE | VENDOR_TYPE | DEVICE_RECIPIENT)
@@ -563,14 +565,14 @@ class usb_20x(mccUSB):
 
         if count > 768:
             raise ValueError('UserMemoryW: max bytes that can be read is 256.')
-            return
 
         if address > 0xff:
             raise ValueError('UserMemoryW: address must be in the range 0 - 0xff.')
-            return
 
         try:
             result = self.udev.controlWrite(request_type, self.USER_MEMORY, wValue, wIndex, data, timeout=100)
+
+            return result
         except:
             print("UserMemoryW: controlWrite error")
 
@@ -586,36 +588,35 @@ class usb_20x(mccUSB):
 
         if count > 256:
             raise ValueError('UserMemoryR: max bytes that can be read is 256.')
-            return
 
         if address > 0xff:
             raise ValueError('UserMemoryR: address must be in the range 0 - 0xff.')
-            return
 
         try:
             result = self.udev.controlRead(request_type, self.USER_MEMORY, wValue, wIndex, count, timeout=100)
+
+            return result
         except:
             print("UserMemoryR: controlRead error")
 
-        return result
-
-    def UserMemoyrW(self, address, data):
+    def UserMemoyrW(self, address, data, count):
         request_type = (HOST_TO_DEVICE | VENDOR_TYPE | DEVICE_RECIPIENT)
         wValue = address & 0xffff  # force to be 16 bits
         wIndex = 0
 
         if count > 256:
             raise ValueError('UserMemoryW: max bytes that can be read is 256.')
-            return
 
         if address > 0xff:
             raise ValueError('UserMemoryW: address must be in the range 0 - 0xff.')
-            return
 
         try:
             result = self.udev.controlWrite(request_type, self.USER_MEMORY, wValue, wIndex, data, timeout=100)
+
+            return result
         except:
             print("UserMemoryW: controlWrite error")
+
 
     def MBDMemoryR(self, address, count):
         """
@@ -623,25 +624,22 @@ class usb_20x(mccUSB):
         MBD memory.  wLength specifies the number of bytes to read
         or write.  The MBD memory is 1024 bytes (address 0 - 0x3FF).
         """
-
         request_type = (DEVICE_TO_HOST | VENDOR_TYPE | DEVICE_RECIPIENT)
         wValue = address & 0xffff  # force to be 16 bits
         wIndex = 0
 
         if count > 1023:
             raise ValueError('MBDMemoryR: max bytes that can be read is 512.')
-            return
 
         if address > 0x3ff:
             raise ValueError('MBDMemoryR: address must be in the range 0 - 0x3ff.')
-            return
 
         try:
             result = self.udev.controlRead(request_type, self.SETTINGS_MEMORY, wValue, wIndex, count, timeout=100)
+
+            return result
         except:
             print("MBDMemoryR: controlRead error")
-
-        return result
 
     def MBDMemoyrW(self, address, data):
         request_type = (HOST_TO_DEVICE | VENDOR_TYPE | DEVICE_RECIPIENT)
@@ -650,14 +648,14 @@ class usb_20x(mccUSB):
 
         if count > 1023:
             raise ValueError('MBDMemoryW: max bytes that can be read is 1023.')
-            return
 
         if address > 0x3ff:
             raise ValueError('MBDMemoryW: address must be in the range 0 - 0x3ff.')
-            return
 
         try:
             result = self.udev.controlWrite(request_type, self.SETTINGS_MEMORY, wValue, wIndex, data, timeout=100)
+
+            return result
         except:
             print("MBDMemoryW: controlWrite error")
 
@@ -674,6 +672,8 @@ class usb_20x(mccUSB):
         wIndex = 0
         result = self.udev.controlWrite(request_type, request, wValue, wIndex, [count], timeout=100)
 
+        return result
+
     def Reset(self):
         """
         This command resets the device
@@ -683,6 +683,8 @@ class usb_20x(mccUSB):
         wValue = 0
         wIndex = 0
         result = self.udev.controlWrite(request_type, request, wValue, wIndex, [0x0], timeout=100)
+
+        return result
 
     def Status(self):
         """
@@ -754,7 +756,7 @@ class usb_201(usb_20x):
         self.udev = self.openByVendorIDAndProductID(0x9db, self.productID, serial)
         if not self.udev:
             raise IOError("MCC USB-201 not found")
-            return
+
         usb_20x.__init__(self)
 
 
@@ -765,7 +767,7 @@ class usb_202(usb_20x):
         self.udev = self.openByVendorIDAndProductID(0x9db, self.productID, serial)
         if not self.udev:
             raise IOError("MCC USB-202 not found")
-            return
+
         usb_20x.__init__(self)
 
     #############################################
@@ -787,8 +789,10 @@ class usb_202(usb_20x):
 
         if channel > 2 or channel < 0:
             raise ValueError('AOut: channel must be 0 or 1.')
-            return
+
         result = self.udev.controlWrite(request_type, request, wValue, wIndex, [0x0], timeout=100)
+
+        return result
 
     def AOutR(self, channel=0):
         """
@@ -812,7 +816,7 @@ class usb_204(usb_20x):
         self.udev = self.openByVendorIDAndProductID(0x9db, self.productID, serial)
         if not self.udev:
             raise IOError("MCC USB-204 not found")
-            return
+
         usb_20x.__init__(self)
 
 
@@ -823,7 +827,7 @@ class usb_205(usb_20x):
         self.udev = self.openByVendorIDAndProductID(0x9db, self.productID, serial)
         if not self.udev:
             raise IOError("MCC USB-205 not found")
-            return
+
         usb_20x.__init__(self)
 
     #############################################
@@ -845,8 +849,10 @@ class usb_205(usb_20x):
 
         if channel > 2 or channel < 0:
             raise ValueError('AOut: channel must be 0 or 1.')
-            return
+
         result = self.udev.controlWrite(request_type, request, wValue, wIndex, [0x0], timeout=100)
+
+        return result
 
     def AOutR(self, channel=0):
         """
@@ -857,6 +863,7 @@ class usb_205(usb_20x):
         wValue = 0
         wIndex = 0
         channels = unpack('HH', self.udev.controlRead(request_type, request, wValue, wIndex, 4, timeout=100))
+
         if channel == 0:
             return channels[0]
         else:

@@ -1,4 +1,6 @@
-libusb1==1.7.1
-matplotlib==3.1.2
-numpy==1.18.1
-pandas==0.25.3
+libusb1
+matplotlib
+numpy
+pandas
+pyqt5
+click
