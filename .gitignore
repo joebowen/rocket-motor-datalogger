@@ -131,3 +131,4 @@ dmypy.json
 .idea
 
 output_data/*
+tests/*
