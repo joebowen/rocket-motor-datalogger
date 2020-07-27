@@ -63,14 +63,9 @@ class DataLogger:
                 try:
                     self.collect_data(pyqt_callback)
                 except mccOverrunError:
-                    self.output_data()
-                    self.usb20x.AInScanStop()
-                    self.usb20x.AInScanClearFIFO()
-                    self.usb20x.BulkFlush()
-                    raise
-                    # self.reset()
+                    self.reset()
         except KeyboardInterrupt:
-            pass
+            self.reset(wait_for_reset=False)
 
     def collect_data(self, pyqt_callback=None):
         raw_data = self.usb20x.AInScanRead(2**self.batch_exp)
@@ -95,18 +90,24 @@ class DataLogger:
 
             self.data = pd.concat([self.data, temp_df])
 
+        self.output_to_csv()
+
         self.transfer_count += 1
 
         if self.debug:
             print(f'{self.transfer_count}: Got {int(len(raw_data) / self.nchan)} data points')
 
-    def reset(self, wait_for_reset=True):
+    def print_debug_info(self):
         time_since_restart = perf_counter() - self.start_timestamp
 
         print(f'Time since last restart: {int(time_since_restart)} seconds or {int(time_since_restart / 60)} minutes')
         print(f'Recorded time: {int(self.timestamp / self.frequency)} seconds or {int(self.timestamp / self.frequency / 60)} minutes')
         print(f'Time since last restart minus recorded time: {int(time_since_restart - (self.timestamp / self.frequency))} seconds')
         print(f'Number of bulk transfers: {self.transfer_count}')
+
+    def reset(self, wait_for_reset=True):
+        if self.debug:
+            self.print_debug_info()
 
         self.usb20x.Reset()
 
@@ -130,9 +131,19 @@ class DataLogger:
         self.usb20x.AInScanStop()
 
     def output_data(self):
+        if self.debug:
+            self.print_debug_info()
+
+        self.output_to_csv()
+        self.output_to_pdf()
+
+    def output_to_csv(self):
         run_timestamp = time.time()
 
         self.data.to_csv(f'output_data/test-{run_timestamp}.csv', index_label='seconds')
+
+    def output_to_pdf(self):
+        run_timestamp = time.time()
 
         fig = plt.figure(figsize=(20, 20 * self.nchan))
         fig.suptitle('Rocket Motor Test', fontsize=50)
