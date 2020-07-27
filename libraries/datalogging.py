@@ -90,7 +90,7 @@ class DataLogger:
 
             self.data = pd.concat([self.data, temp_df])
 
-        self.output_to_csv()
+            self.output_to_csv()
 
         self.transfer_count += 1
 
@@ -132,14 +132,17 @@ class DataLogger:
         self.usb20x.AInScanStop()
 
     def output_data(self):
-        if self.debug:
-            self.print_debug_info()
-
         self.output_to_csv()
         self.output_to_pdf()
 
     def output_to_csv(self):
-        self.data.to_csv(f'output_data/test-{self.start_timestamp}.csv', index_label='seconds')
+        self.data.to_csv(
+            f'output_data/test-{self.start_timestamp}.csv',
+            index_label='seconds',
+            mode='a',
+            header=False,
+            chunksize=10000
+        )
 
     def output_to_pdf(self):
         fig = plt.figure(figsize=(20, 20 * self.nchan))
