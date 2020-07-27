@@ -429,12 +429,10 @@ class usb_20x(mccUSB):
 
     def AInScanRead(self, nScan):
         status = self.Status()
-        try:
-            if status & self.AIN_SCAN_OVERRUN:
-                raise OverrunError
-        except:
+
+        if status & self.AIN_SCAN_OVERRUN:
             print(f'AInScanRead: Overrun Error... status: {status}')
-            raise
+            raise OverrunError
 
         nSamples = int(nScan * self.nChan)
         data = []
@@ -724,7 +722,7 @@ class usb_20x(mccUSB):
             barray[i] = ord(serial[i])
         self.udev.controlWrite(request_type, request, wValue, wIndex, barray, self.HS_DELAY)
 
-    def DFU(self):
+    def DeviceUpgradeMode(self):
         """
         This command places the device in firmware upgrade mode by erasing
         a portion of the program memory.  The next time the device is

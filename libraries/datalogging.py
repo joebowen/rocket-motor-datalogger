@@ -64,7 +64,11 @@ class DataLogger:
                     self.collect_data(pyqt_callback)
                 except mccOverrunError:
                     self.output_data()
-                    self.reset()
+                    self.usb20x.AInScanStop()
+                    self.usb20x.AInScanClearFIFO()
+                    self.usb20x.BulkFlush()
+                    raise
+                    # self.reset()
         except KeyboardInterrupt:
             pass
 
@@ -72,18 +76,24 @@ class DataLogger:
         raw_data = self.usb20x.AInScanRead(2**self.batch_exp)
 
         if raw_data and isinstance(raw_data, list):
+            df_index = []
+            df_temp = []
             for index in range(int(len(raw_data) / self.nchan)):
                 voltage = list()
                 for chan_index in range(self.nchan):
                     voltage.append(self.usb20x.volts(raw_data[(index * self.nchan) + chan_index]))
 
                 self.timestamp += 1
-                temp_df = pd.DataFrame([voltage], columns=self.column_names, index=[self.timestamp / self.frequency])
 
-                self.data = pd.concat([self.data, temp_df])
+                df_index.append(self.timestamp / self.frequency)
+                df_temp.append(voltage)
 
                 if pyqt_callback:
                     pyqt_callback.data_signal.emit(voltage)  # <- Here you emit a signal when using pyqt!
+
+            temp_df = pd.DataFrame(df_temp, columns=self.column_names, index=df_index)
+
+            self.data = pd.concat([self.data, temp_df])
 
         self.transfer_count += 1
 
