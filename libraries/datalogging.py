@@ -95,7 +95,8 @@ class DataLogger:
         self.transfer_count += 1
 
         if self.debug:
-            print(f'{self.transfer_count}: Got {int(len(raw_data) / self.nchan)} data points')
+            minutes_behind = int((perf_counter() - self.start_timestamp - (self.timestamp / self.frequency)) / 60)
+            print(f'{self.transfer_count}: Got {int(len(raw_data) / self.nchan)} data points  -  (currently {minutes_behind} minutes behind)  -  Recorded time: {int(self.timestamp / self.frequency / 60)} minutes')
 
     def print_debug_info(self):
         time_since_restart = perf_counter() - self.start_timestamp
@@ -138,13 +139,9 @@ class DataLogger:
         self.output_to_pdf()
 
     def output_to_csv(self):
-        run_timestamp = time.time()
-
-        self.data.to_csv(f'output_data/test-{run_timestamp}.csv', index_label='seconds')
+        self.data.to_csv(f'output_data/test-{self.start_timestamp}.csv', index_label='seconds')
 
     def output_to_pdf(self):
-        run_timestamp = time.time()
-
         fig = plt.figure(figsize=(20, 20 * self.nchan))
         fig.suptitle('Rocket Motor Test', fontsize=50)
         axis = list()
@@ -157,4 +154,4 @@ class DataLogger:
             axis[index].set_title(column_name)
             axis[index].set_ylim([-12, 12])
 
-        fig.savefig(f'output_data/test-{run_timestamp}.pdf', dpi=500)
+        fig.savefig(f'output_data/test-{self.start_timestamp}.pdf', dpi=500)
