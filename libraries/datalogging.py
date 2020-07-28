@@ -12,7 +12,7 @@ from matplotlib import pyplot as plt
 
 
 class DataLogger:
-    def __init__(self, frequency, column_names, batch_exp=10, debug=False):
+    def __init__(self, frequency, column_names, batch_exp=10, debug=False, maxruntime=0):
         self.debug = debug
 
         self.usb20x = usb_204()
@@ -23,9 +23,11 @@ class DataLogger:
 
         self.nchan = len(self.column_names)  # Number of channels to measure
 
+        self.restart_timestamp = perf_counter()
         self.start_timestamp = perf_counter()
         self.timestamp = 0
         self.transfer_count = 0
+        self.maxruntime = maxruntime
 
         self.data = pd.DataFrame(columns=column_names)
 
@@ -48,7 +50,7 @@ class DataLogger:
         self.usb20x.AInScanClearFIFO()
         self.usb20x.AInScanStart(0, self.frequency, self.channels, self.options, 0, 0)
 
-        self.start_timestamp = perf_counter()
+        self.restart_timestamp = perf_counter()
         self.timestamp = 0
         self.transfer_count = 0
 
@@ -64,6 +66,9 @@ class DataLogger:
                     self.collect_data(pyqt_callback)
                 except mccOverrunError:
                     self.reset()
+
+                if self.maxruntime and ((perf_counter() - self.start_timestamp) / 60) > self.maxruntime:
+                    break
         except KeyboardInterrupt:
             self.reset(wait_for_reset=False)
 
@@ -95,11 +100,11 @@ class DataLogger:
         self.transfer_count += 1
 
         if self.debug:
-            minutes_behind = int((perf_counter() - self.start_timestamp - (self.timestamp / self.frequency)) / 60)
+            minutes_behind = int((perf_counter() - self.restart_timestamp - (self.timestamp / self.frequency)) / 60)
             print(f'{self.transfer_count}: Got {int(len(raw_data) / self.nchan)} data points  -  (currently {minutes_behind} minutes behind)  -  Recorded time: {int(self.timestamp / self.frequency / 60)} minutes')
 
     def print_debug_info(self):
-        time_since_restart = perf_counter() - self.start_timestamp
+        time_since_restart = perf_counter() - self.restart_timestamp
 
         print(f'Time since last restart: {int(time_since_restart)} seconds or {int(time_since_restart / 60)} minutes')
         print(f'Recorded time: {int(self.timestamp / self.frequency)} seconds or {int(self.timestamp / self.frequency / 60)} minutes')
@@ -137,7 +142,7 @@ class DataLogger:
 
     def output_to_csv(self):
         self.data.to_csv(
-            f'output_data/test-{self.start_timestamp}.csv',
+            f'output_data/test-{self.restart_timestamp}.csv',
             index_label='seconds',
             mode='a',
             header=False,
@@ -157,4 +162,4 @@ class DataLogger:
             axis[index].set_title(column_name)
             axis[index].set_ylim([-12, 12])
 
-        fig.savefig(f'output_data/test-{self.start_timestamp}.pdf', dpi=500)
+        fig.savefig(f'output_data/test-{self.restart_timestamp}.pdf', dpi=500)

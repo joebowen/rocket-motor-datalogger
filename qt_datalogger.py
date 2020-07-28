@@ -20,7 +20,7 @@ def main(freq, maxruntime, debug, headless, batch_exp=10):
         'Tank Temperature'
     ]
 
-    data_logger = DataLogger(freq, column_names, batch_exp, debug)
+    data_logger = DataLogger(freq, column_names, batch_exp, debug, maxruntime)
 
     if headless:
         data_logger.start()
