@@ -22,6 +22,7 @@ from struct import *
 from datetime import datetime
 from mccUSB import *
 
+from time import perf_counter
 
 class usb_20x(mccUSB):
     """
@@ -427,7 +428,7 @@ class usb_20x(mccUSB):
 
         return result
 
-    def AInScanRead(self, nScan):
+    def AInScanRead(self, nScan, logging):
         status = self.Status()
 
         if status & self.AIN_SCAN_OVERRUN:
@@ -447,7 +448,20 @@ class usb_20x(mccUSB):
         else:
             try:
                 timeout = int(1000 * self.nChan * nScan / self.frequency + 1000)
-                data = unpack('H' * nSamples, self.udev.bulkRead(usb1.ENDPOINT_IN | 1, int(2 * nSamples), timeout))
+
+                start_time = perf_counter()
+                logging.debug(f'Read Start')
+
+                pre_data = self.udev.bulkRead(usb1.ENDPOINT_IN | 1, int(2 * nSamples),  timeout)
+
+                end_time = perf_counter() - start_time
+                read_rate = nScan / end_time
+                logging.debug(f'Channels: {self.nChan}')
+                logging.debug(f'Scans: {nScan}')
+                logging.debug(f'Samples: {nSamples}')
+                logging.debug(f'Read took: {int(end_time)} seconds for a rate of {int(read_rate)} samples/sec')
+
+                data = unpack('H' * nSamples, pre_data)
             except:
                 print('AInScanRead: error in bulk transfer!', len(data), nSamples)
                 raise

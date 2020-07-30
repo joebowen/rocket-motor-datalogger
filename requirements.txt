@@ -4,3 +4,4 @@ numpy
 pandas
 pyqt5
 click
+multiprocessing_logging

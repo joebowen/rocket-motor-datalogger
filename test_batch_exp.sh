@@ -2,7 +2,8 @@
 
 set -ex
 
-for exp in {5..17}
+for exp in {15..25}
 do
-  python3 -m cProfile qt_datalogger.py --debug --freq 1000 --batch-exp ${exp} --maxruntime 5 > tests/test-${exp}.csv
+  python3 -m cProfile -s cumtime qt_datalogger.py --debug --freq 2000 --batch-exp ${exp} --maxruntime 5 > tests/test-${exp}.csv
+  sleep 20s
 done
