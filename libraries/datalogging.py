@@ -17,6 +17,7 @@ logging.basicConfig(level=logging.DEBUG,
                     format='(%(threadName)-9s) %(message)s',)
 
 q = queue.Queue(10)
+exit_flag = queue.Queue(1)
 
 
 class ProducerThread(threading.Thread):
@@ -27,18 +28,24 @@ class ProducerThread(threading.Thread):
         self.data_logger = data_logger
 
     def run(self):
-        while True:
-            if not q.full():
-                try:
-                    item = self.data_logger.collect_data()
-                    if item:
-                        q.put(item)
-                        logging.debug('Putting 1 item in queue')
-                except mccOverrunError:
-                    self.data_logger.reset()
+        try:
+            while exit_flag.empty():
+                if not q.full():
+                    try:
+                        item = self.data_logger.collect_data()
+                        if item:
+                            q.put(item)
+                            logging.debug('Putting 1 item in queue')
+                    except mccOverrunError:
+                        self.data_logger.reset()
 
-                time.sleep(random.random())
-        return
+                    time.sleep(random.random())
+
+        except (KeyboardInterrupt, SystemExit):
+            logging.debug('Exit2')
+            self.data_logger.output_data()
+            self.data_logger.reset(wait_for_reset=False)
+            exit_flag.put(True)
 
 
 class ConsumerThread(threading.Thread):
@@ -53,7 +60,7 @@ class ConsumerThread(threading.Thread):
 
     def run(self):
         try:
-            while True:
+            while exit_flag.empty():
                 if not q.empty():
                     item = q.get()
                     self.data_logger.process_data(item, self.pyqt_callback)
@@ -62,8 +69,11 @@ class ConsumerThread(threading.Thread):
                     self.data_logger.reset(wait_for_reset=False)
                     break
 
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, SystemExit):
+            logging.debug('Exit1')
+            self.data_logger.output_data()
             self.data_logger.reset(wait_for_reset=False)
+            exit_flag.put(True)
 
 
 class DataLogger:
@@ -85,7 +95,6 @@ class DataLogger:
         self.maxruntime = maxruntime
 
         self.data = pd.DataFrame(columns=column_names)
-        self.all_data = pd.DataFrame(columns=column_names)
 
         self.channels = 0
         for i in range(self.nchan):
@@ -127,15 +136,21 @@ class DataLogger:
             maxruntime=self.maxruntime,
             start_timestamp=self.start_timestamp
         )
+        c.daemon = True
 
-        p.start()
-        time.sleep(2)
-        c.start()
-        time.sleep(2)
+        try:
+            p.start()
+            time.sleep(2)
+            c.start()
+            time.sleep(2)
+
+            c.join()
+        except (KeyboardInterrupt, SystemExit):
+            logging.debug('Stopping logging')
+            exit_flag.put(True)
 
         c.join()
-
-        logging.debug('Stopping logging')
+        p.join()
 
     def collect_data(self):
         raw_data = self.usb20x.AInScanRead(2**self.batch_exp, logging)
@@ -163,7 +178,7 @@ class DataLogger:
 
             self.data = pd.concat([self.data, temp_df])
 
-            self.output_data()
+            self.output_to_csv()
 
         self.transfer_count += 1
 
@@ -217,18 +232,21 @@ class DataLogger:
             chunksize=10000
         )
 
-        self.all_data = pd.concat([self.all_data, self.data])
-
         # Reset data to be appended next time
         self.data = pd.DataFrame(columns=self.column_names)
 
     def output_to_pdf(self):
+        df = pd.read_csv(
+            f'output_data/test-{self.restart_timestamp}.csv',
+            names=self.column_names
+        )
+
         fig = plt.figure(figsize=(20, 20 * self.nchan))
         fig.suptitle('Rocket Motor Test', fontsize=50)
         axis = list()
         for index, column_name in enumerate(self.column_names):
             axis.append(fig.add_subplot(self.nchan, 1, index + 1))
-            axis[index].plot(self.all_data[column_name])
+            axis[index].plot(df[column_name])
 
             axis[index].set_xlabel('Seconds')
             axis[index].set_ylabel('Voltage')
