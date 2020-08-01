@@ -13,12 +13,12 @@ from mccUSB import OverrunError as mccOverrunError
 from usb_20x import *
 from matplotlib import pyplot as plt
 
-q = queue.Queue(10)
+data_queue = queue.Queue(10)
 exit_flag = queue.Queue(1)
 
 
 class ProducerThread(threading.Thread):
-    def __init__(self, data_logger, group=None, target=None, name=None, args=(), kwargs=None, verbose=None):
+    def __init__(self, data_logger, group=None, target=None, name=None, args=(), kwargs=None, verbose=None, daemon=True):
         super(ProducerThread, self).__init__()
         self.target = target
         self.name = name
@@ -27,11 +27,11 @@ class ProducerThread(threading.Thread):
     def run(self):
         try:
             while exit_flag.empty():
-                if not q.full():
+                if not data_queue.full():
                     try:
                         item = self.data_logger.collect_data()
                         if item:
-                            q.put(item)
+                            data_queue.put(item)
                             logging.debug(f'Putting 1 item in queue')
 
                         stop_flag = self.data_logger.usb20x.DPort()
@@ -39,14 +39,13 @@ class ProducerThread(threading.Thread):
 
                         if not stop_flag:
                             logging.info('Stopping due to stop flag trigger going low...')
-                            self.data_logger.stop()
+                            self.data_logger.reset(wait_for_reset=True)
                             exit_flag.put(True)
 
                     except USBError as e:
                         if e.value == -7:
                             # Normal, the device is probably waiting for a trigger
                             logging.debug(f'USB Timeout occurred, probably waiting for trigger')
-
                             time.sleep(random.random())
                         else:
                             raise
@@ -62,11 +61,10 @@ class ProducerThread(threading.Thread):
 
 
 class ConsumerThread(threading.Thread):
-    def __init__(self, data_logger, maxruntime, start_timestamp, group=None, target=None, name=None, args=(), kwargs=None, verbose=None, pyqt_callback=None):
+    def __init__(self, data_logger, maxruntime, start_timestamp, group=None, target=None, name=None, args=(), kwargs=None, verbose=None, daemon=True):
         super(ConsumerThread, self).__init__()
         self.target = target
         self.name = name
-        self.pyqt_callback = pyqt_callback
         self.data_logger = data_logger
         self.maxruntime = maxruntime
         self.start_timestamp = start_timestamp
@@ -74,12 +72,14 @@ class ConsumerThread(threading.Thread):
     def run(self):
         try:
             while exit_flag.empty():
-                if not q.empty():
-                    item = q.get()
-                    self.data_logger.process_data(item, self.pyqt_callback)
+                if not data_queue.empty():
+                    item = data_queue.get()
+                    self.data_logger.process_data(item)
 
                 if self.maxruntime and ((perf_counter() - self.start_timestamp) / 60) > self.maxruntime:
                     sys.exit()
+
+                time.sleep(0.001)
 
         except (KeyboardInterrupt, SystemExit):
             self.data_logger.stop()
@@ -103,6 +103,10 @@ class DataLogger:
         self.transfer_count = 0
         self.maxruntime = maxruntime
         self.pdf_flag = pdf_flag
+        self.qt_queue = None
+
+        self.p = None
+        self.c = None
 
         self.data = pd.DataFrame(columns=column_names)
 
@@ -118,7 +122,7 @@ class DataLogger:
         self.flag = fcntl.fcntl(sys.stdin, fcntl.F_GETFL)
         fcntl.fcntl(sys.stdin, fcntl.F_SETFL, self.flag | os.O_NONBLOCK)
 
-    def start(self):
+    def start(self, qt_queue=None):
         self.usb20x = usb_204()
 
         self.usb20x.AInScanStop()
@@ -132,47 +136,51 @@ class DataLogger:
 
         self.data = pd.DataFrame(columns=self.column_names)
 
-        logging.info('Started USB_204')
+        self.qt_queue = qt_queue
 
-    def run(self, pyqt_callback=None):
+        # To write out the column headers
+        self.output_to_csv(write_mode='w')
+
+        logging.info('Starting USB_204')
+
+    def run(self):
         logging.info('Running data logging...')
 
-        p = ProducerThread(name='producer', data_logger=self)
-        p.daemon = True
+        self.p = ProducerThread(
+            name='producer',
+            daemon=True,
+            data_logger=self
+        )
 
-        c = ConsumerThread(
+        self.c = ConsumerThread(
             name='consumer',
-            pyqt_callback=pyqt_callback,
+            daemon=True,
             data_logger=self,
             maxruntime=self.maxruntime,
             start_timestamp=self.start_timestamp
         )
-        c.daemon = True
 
         if not exit_flag.empty():
             exit_flag.get()
 
-        try:
-            logging.info('Waiting for trigger...')
-            p.start()
-            time.sleep(2)
-            c.start()
-            time.sleep(2)
+        self.p.start()
+        self.c.start()
 
-            c.join()
+    def wait_for_keyboard(self):
+        try:
+            logging.info('Waiting for keyboard...')
+
+            self.c.join()
         except (KeyboardInterrupt, SystemExit):
             logging.info('Stopping logging')
             exit_flag.put(True)
 
-        c.join()
-        p.join()
-
     def collect_data(self):
-        raw_data = self.usb20x.AInScanRead(2**self.batch_exp, logging)
+        raw_data = self.usb20x.AInScanRead(2**self.batch_exp)
 
         return raw_data
 
-    def process_data(self, raw_data, pyqt_callback=None):
+    def process_data(self, raw_data):
         if raw_data and isinstance(raw_data, list):
             df_index = []
             df_temp = []
@@ -186,8 +194,8 @@ class DataLogger:
                 df_index.append(self.timestamp)
                 df_temp.append(voltage)
 
-                if pyqt_callback:
-                    pyqt_callback.data_signal.emit(voltage)  # <- Here you emit a signal when using pyqt!
+                if self.qt_queue:
+                    self.qt_queue.put(voltage)
 
             temp_df = pd.DataFrame(df_temp, columns=self.column_names, index=df_index)
 
@@ -237,15 +245,19 @@ class DataLogger:
         if self.pdf_flag:
             self.output_to_pdf()
 
-    def output_to_csv(self):
+    def output_to_csv(self, write_mode='a'):
         if not os.path.exists(f'output_data/{self.timestamp_label}'):
             os.makedirs(f'output_data/{self.timestamp_label}')
+
+        header = False
+        if write_mode == 'w':
+            header = True
 
         self.data.to_csv(
             f'output_data/{self.timestamp_label}/data.csv',
             index_label='seconds',
-            mode='a',
-            header=False,
+            mode=write_mode,
+            header=header,
             chunksize=10000
         )
 
@@ -254,8 +266,7 @@ class DataLogger:
 
     def output_to_pdf(self):
         df = pd.read_csv(
-            f'output_data/{self.timestamp_label}/data.csv',
-            names=self.column_names
+            f'output_data/{self.timestamp_label}/data.csv'
         )
 
         for index, column_name in enumerate(self.column_names):

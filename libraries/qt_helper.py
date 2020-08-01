@@ -11,6 +11,9 @@ import sys
 import threading
 import numpy as np
 import matplotlib
+import queue
+import time
+import logging
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
@@ -23,28 +26,44 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 matplotlib.use("Qt5Agg")
 
+qt_queue = queue.Queue(10000)
+
+
+def data_send_loop(add_data_callback_func):
+    # Setup the signal-slot mechanism.
+    pyqt_callback = Communicate()
+    pyqt_callback.data_signal.connect(add_data_callback_func)
+
+    while True:
+        for x in range(100):
+            if not qt_queue.empty():
+                voltages = qt_queue.get()
+                pyqt_callback.data_signal.emit(voltages)  # <- Here you emit a signal when using pyqt!
+            else:
+                time.sleep(.1)
+                break
+
+        time.sleep(.01)
+
 
 class QTHelper:
-    def __init__(self, data_logger, debug=False):
+    def __init__(self, data_logger):
         app = QApplication(sys.argv)
         QApplication.setStyle(QStyleFactory.create('Plastique'))
 
-        def data_send_loop(add_data_callback_func):
-            # Setup the signal-slot mechanism.
-            pyqt_callback = Communicate()
-            pyqt_callback.data_signal.connect(add_data_callback_func)
+        data_logger = data_logger
 
-            data_logger.start()
-            data_logger.run(pyqt_callback)
-            data_logger.output_data()
+        data_logger.start(qt_queue)
+        data_logger.run()
 
-        CustomMainWindow(data_logger, data_send_loop, debug)
+        CustomMainWindow(data_logger.nchan)
         sys.exit(app.exec_())
 
 
 class CustomMainWindow(QMainWindow):
-    def __init__(self, data_logger, data_send_loop, debug=False):
+    def __init__(self, nchan):
         super(CustomMainWindow, self).__init__()
+
         # Define the geometry of the main window
         self.setGeometry(300, 300, 2000, 1000)
         self.setWindowTitle("Load Cell Test")
@@ -56,21 +75,17 @@ class CustomMainWindow(QMainWindow):
         self.setCentralWidget(self.FRAME_A)
         # Place the matplotlib figure
         self.myFigs = list()
-        for index in range(data_logger.nchan):
+        for index in range(nchan):
             self.myFigs.append(CustomFigCanvas())
-            self.LAYOUT_A.addWidget(self.myFigs[index], *(index,1))
-
-        self.data_logger = data_logger
-        self.debug = debug
+            self.LAYOUT_A.addWidget(self.myFigs[index], *(index, 1))
 
         # Add the callbackfunc to ..
         my_data_loop = threading.Thread(
             name='my_data_loop',
             target=data_send_loop,
-            daemon=True,
             args=(self.add_data_callback_func,)
         )
-
+        my_data_loop.setDaemon(True)
         my_data_loop.start()
         self.show()
 
@@ -79,10 +94,6 @@ class CustomMainWindow(QMainWindow):
             self.myFigs[index].add_data(value)
 
     def closeEvent(self, event):
-        self.data_logger.stop()
-        self.data_logger.output_data()
-        self.data_logger.reset(wait_for_reset=False)
-
         event.accept()
 
 
@@ -108,7 +119,7 @@ class CustomFigCanvas(FigureCanvas, TimedAnimation):
         self.ax1.set_xlim(0, self.xlim - 1)
         self.ax1.set_ylim(-10.5, 10.5)
         FigureCanvas.__init__(self, self.fig)
-        TimedAnimation.__init__(self, self.fig, interval=1, blit=True)
+        TimedAnimation.__init__(self, self.fig, interval=50, blit=True)
 
     def new_frame_seq(self):
         return iter(range(self.n.size))
