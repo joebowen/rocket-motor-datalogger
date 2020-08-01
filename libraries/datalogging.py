@@ -96,6 +96,7 @@ class DataLogger:
         self.nchan = len(self.column_names)  # Number of channels to measure
         self.frequency = frequency
 
+        self.timestamp_label = datetime.now().strftime('%y-%b-%d_%H:%M:%S')
         self.restart_timestamp = perf_counter()
         self.start_timestamp = perf_counter()
         self.timestamp = 0
@@ -124,6 +125,7 @@ class DataLogger:
         self.usb20x.AInScanClearFIFO()
         self.usb20x.AInScanStart(0, self.frequency * self.nchan, self.channels, self.options, self.usb20x.TRIGGER, self.usb20x.LEVEL_HIGH)
 
+        self.timestamp_label = datetime.now().strftime('%y-%b-%d %H:%M:%S')
         self.restart_timestamp = perf_counter()
         self.timestamp = 0
         self.transfer_count = 0
@@ -237,8 +239,11 @@ class DataLogger:
             self.output_to_pdf()
 
     def output_to_csv(self):
+        if not os.path.exists(f'output_data/{self.timestamp_label}'):
+            os.makedirs(f'output_data/{self.timestamp_label}')
+
         self.data.to_csv(
-            f'output_data/test-{self.restart_timestamp}.csv',
+            f'output_data/{self.timestamp_label}/data.csv',
             index_label='seconds',
             mode='a',
             header=False,
@@ -250,20 +255,21 @@ class DataLogger:
 
     def output_to_pdf(self):
         df = pd.read_csv(
-            f'output_data/test-{self.restart_timestamp}.csv',
+            f'output_data/{self.timestamp_label}/data.csv',
             names=self.column_names
         )
 
-        fig = plt.figure(figsize=(20, 20 * self.nchan))
-        fig.suptitle('Rocket Motor Test', fontsize=50)
-        axis = list()
         for index, column_name in enumerate(self.column_names):
-            axis.append(fig.add_subplot(self.nchan, 1, index + 1))
-            axis[index].plot(df[column_name])
+            fig = plt.figure()
+            fig.suptitle(f'Rocket Motor Test - {self.timestamp_label}')
 
-            axis[index].set_xlabel('Seconds')
-            axis[index].set_ylabel('Voltage')
-            axis[index].set_title(column_name)
-            axis[index].set_ylim([-12, 12])
+            subplot = fig.add_subplot(1, 1, 1)
+            subplot.plot(df[column_name])
 
-        fig.savefig(f'output_data/test-{self.restart_timestamp}.pdf', dpi=500)
+            subplot.set_xlabel('Seconds')
+            subplot.set_ylabel('Voltage')
+            subplot.set_title(column_name)
+            subplot.set_ylim([-12, 12])
+
+            fig.tight_layout()
+            fig.savefig(f'output_data/{self.timestamp_label}/{column_name}.pdf', dpi=1000, orientation='landscape', bbox_inches='tight')
