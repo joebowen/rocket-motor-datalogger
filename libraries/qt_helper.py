@@ -15,6 +15,8 @@ import queue
 import time
 import logging
 
+import pandas as pd
+
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -26,7 +28,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 matplotlib.use("Qt5Agg")
 
-qt_queue = queue.Queue(10000)
+qt_queue = queue.Queue(10)
 
 
 def data_send_loop(add_data_callback_func):
@@ -56,12 +58,12 @@ class QTHelper:
         data_logger.start(qt_queue)
         data_logger.run()
 
-        CustomMainWindow(data_logger.nchan)
+        CustomMainWindow(data_logger.column_names)
         sys.exit(app.exec_())
 
 
 class CustomMainWindow(QMainWindow):
-    def __init__(self, nchan):
+    def __init__(self, column_names):
         super(CustomMainWindow, self).__init__()
 
         # Define the geometry of the main window
@@ -74,10 +76,10 @@ class CustomMainWindow(QMainWindow):
         self.FRAME_A.setLayout(self.LAYOUT_A)
         self.setCentralWidget(self.FRAME_A)
         # Place the matplotlib figure
-        self.myFigs = list()
-        for index in range(nchan):
-            self.myFigs.append(CustomFigCanvas())
-            self.LAYOUT_A.addWidget(self.myFigs[index], *(index, 1))
+        self.myFigs = dict()
+        for index, column_name in enumerate(column_names):
+            self.myFigs[column_name] = CustomFigCanvas(column_name)
+            self.LAYOUT_A.addWidget(self.myFigs[column_name], *(index, 1))
 
         # Add the callbackfunc to ..
         my_data_loop = threading.Thread(
@@ -89,16 +91,17 @@ class CustomMainWindow(QMainWindow):
         my_data_loop.start()
         self.show()
 
-    def add_data_callback_func(self, values):
-        for index, value in enumerate(values):
-            self.myFigs[index].add_data(value)
+    def add_data_callback_func(self, df):
+        for col_name, col_data in df.iteritems():
+            for value in col_data:
+                self.myFigs[col_name].add_data(value)
 
     def closeEvent(self, event):
         event.accept()
 
 
 class CustomFigCanvas(FigureCanvas, TimedAnimation):
-    def __init__(self):
+    def __init__(self, column_name):
         self.added_data = []
         # The data
         self.xlim = 3000
@@ -108,6 +111,7 @@ class CustomFigCanvas(FigureCanvas, TimedAnimation):
         self.fig = Figure(figsize=(5, 5), dpi=100)
         self.ax1 = self.fig.add_subplot(111)
         # self.ax1 settings
+        self.ax1.set_title(column_name)
         self.ax1.set_xlabel('time')
         self.ax1.set_ylabel('voltage')
         self.line1 = Line2D([], [], color='blue')
@@ -119,7 +123,7 @@ class CustomFigCanvas(FigureCanvas, TimedAnimation):
         self.ax1.set_xlim(0, self.xlim - 1)
         self.ax1.set_ylim(-10.5, 10.5)
         FigureCanvas.__init__(self, self.fig)
-        TimedAnimation.__init__(self, self.fig, interval=50, blit=True)
+        TimedAnimation.__init__(self, self.fig, interval=1, blit=True)
 
     def new_frame_seq(self):
         return iter(range(self.n.size))
@@ -161,4 +165,4 @@ class CustomFigCanvas(FigureCanvas, TimedAnimation):
 # Believe me, if you don't do this right, things
 # go very very wrong..
 class Communicate(QObject):
-    data_signal = pyqtSignal(list)
+    data_signal = pyqtSignal(pd.DataFrame)

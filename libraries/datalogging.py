@@ -194,10 +194,10 @@ class DataLogger:
                 df_index.append(self.timestamp)
                 df_temp.append(voltage)
 
-                if self.qt_queue:
-                    self.qt_queue.put(voltage)
-
             temp_df = pd.DataFrame(df_temp, columns=self.column_names, index=df_index)
+
+            if self.qt_queue:
+                self.qt_queue.put(temp_df)
 
             self.data = pd.concat([self.data, temp_df])
 
