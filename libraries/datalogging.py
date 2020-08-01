@@ -197,8 +197,7 @@ class DataLogger:
 
         self.transfer_count += 1
 
-        seconds_behind = int(perf_counter() - self.restart_timestamp - (self.timestamp))
-        logging.info(f'{self.transfer_count}: Got {int(len(raw_data) / self.nchan)} data points  -  (currently {seconds_behind} seconds behind)  -  Recorded time: {int(self.timestamp)} seconds')
+        logging.info(f'{self.transfer_count}: Got {int(len(raw_data) / self.nchan)} data points  -  Recorded time: {int(self.timestamp)} seconds')
 
     def print_debug_info(self):
         time_since_restart = perf_counter() - self.restart_timestamp
@@ -261,14 +260,13 @@ class DataLogger:
 
         for index, column_name in enumerate(self.column_names):
             fig = plt.figure()
-            fig.suptitle(f'Rocket Motor Test - {self.timestamp_label}')
+            fig.suptitle(f'Rocket Motor Test - {self.timestamp_label} - {column_name}')
 
             subplot = fig.add_subplot(1, 1, 1)
             subplot.plot(df[column_name])
 
             subplot.set_xlabel('Seconds')
             subplot.set_ylabel('Voltage')
-            subplot.set_title(column_name)
             subplot.set_ylim([-12, 12])
 
             fig.tight_layout()

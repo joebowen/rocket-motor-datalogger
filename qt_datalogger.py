@@ -11,12 +11,12 @@ logging.basicConfig(level=logging.INFO,
 @click.command()
 @click.option('--freq', type=int, default=1000, help='Data Logging Frequency - Default: 1000 Hz')
 @click.option('--maxruntime', type=int, default=0, help='Maximum Run Time - Default: 0 (for continuous)')
-@click.option('--batch-exp', type=int, default=10, help='Data Read Batch Exponent - Default: 13 (ie. 2^13 records per batch)')
+@click.option('--batch-exp', type=int, default=11, help='Data Read Batch Exponent - Default: 11 (ie. 2^11 records per batch)')
 @click.option('--debug', is_flag=True, help='Set for more debugging')
-@click.option('--pdf', is_flag=True, help='Output PDF Chart')
-@click.option('--continuous', is_flag=True, help='Continue after "exit"')
-@click.option('--headless', type=bool, default=True, help='Set False for real time QT5 graph - Default: True')
-def main(freq, maxruntime, debug, headless, pdf, continuous, batch_exp=13):
+@click.option('--nopdf', is_flag=False, default=True, help='Output PDF Chart')
+@click.option('--onetrigger', is_flag=True, help='Only log one event. If not set, it will loop')
+@click.option('--realtimegraph', is_flag=True, help='Real time QT5 graph')
+def main(freq, maxruntime, debug, realtimegraph, nopdf, onetrigger, batch_exp):
     column_names = [
         'Load Cell',
         'Chamber Pressure',
@@ -29,9 +29,9 @@ def main(freq, maxruntime, debug, headless, pdf, continuous, batch_exp=13):
         logging.getLogger().setLevel(logging.DEBUG)
 
     while True:
-        data_logger = DataLogger(freq, column_names, batch_exp, maxruntime, pdf)
+        data_logger = DataLogger(freq, column_names, batch_exp, maxruntime, nopdf)
 
-        if headless:
+        if not realtimegraph:
             data_logger.start()
             data_logger.run()
             data_logger.output_data()
@@ -41,7 +41,7 @@ def main(freq, maxruntime, debug, headless, pdf, continuous, batch_exp=13):
 
             QTHelper(data_logger, debug)
 
-        if not continuous:
+        if onetrigger:
             break
 
 
