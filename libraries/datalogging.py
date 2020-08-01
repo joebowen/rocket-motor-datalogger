@@ -269,5 +269,4 @@ class DataLogger:
             subplot.set_ylabel('Voltage')
             subplot.set_ylim([-12, 12])
 
-            fig.tight_layout()
             fig.savefig(f'output_data/{self.timestamp_label}/{column_name}.pdf', dpi=1000, orientation='landscape', bbox_inches='tight')
