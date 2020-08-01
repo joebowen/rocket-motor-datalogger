@@ -7,14 +7,11 @@ import threading
 
 import pandas as pd
 
+from usb1 import USBError
 from mccUSB import OverrunError as mccOverrunError
 
 from usb_20x import *
 from matplotlib import pyplot as plt
-
-
-logging.basicConfig(level=logging.DEBUG,
-                    format='(%(threadName)-9s) %(message)s',)
 
 q = queue.Queue(10)
 exit_flag = queue.Queue(1)
@@ -35,16 +32,32 @@ class ProducerThread(threading.Thread):
                         item = self.data_logger.collect_data()
                         if item:
                             q.put(item)
-                            logging.debug('Putting 1 item in queue')
+                            logging.debug(f'Putting 1 item in queue')
+
+                        stop_flag = self.data_logger.usb20x.DPort()
+                        logging.debug(f'Stop Flag: {stop_flag}')
+
+                        if not stop_flag:
+                            logging.info('Stopping due to stop flag trigger going low...')
+                            self.data_logger.stop()
+                            exit_flag.put(True)
+
+                    except USBError as e:
+                        if e.value == -7:
+                            # Normal, the device is probably waiting for a trigger
+                            logging.debug(f'USB Timeout occurred, probably waiting for trigger')
+
+                            time.sleep(random.random())
+                        else:
+                            raise
                     except mccOverrunError:
-                        self.data_logger.reset()
+                        self.data_logger.output_data()
+                        self.data_logger.reset(wait_for_reset=True)
 
                     time.sleep(random.random())
 
         except (KeyboardInterrupt, SystemExit):
-            logging.debug('Exit2')
-            self.data_logger.output_data()
-            self.data_logger.reset(wait_for_reset=False)
+            self.data_logger.stop()
             exit_flag.put(True)
 
 
@@ -66,20 +79,15 @@ class ConsumerThread(threading.Thread):
                     self.data_logger.process_data(item, self.pyqt_callback)
 
                 if self.maxruntime and ((perf_counter() - self.start_timestamp) / 60) > self.maxruntime:
-                    self.data_logger.reset(wait_for_reset=False)
-                    break
+                    sys.exit()
 
         except (KeyboardInterrupt, SystemExit):
-            logging.debug('Exit1')
-            self.data_logger.output_data()
-            self.data_logger.reset(wait_for_reset=False)
+            self.data_logger.stop()
             exit_flag.put(True)
 
 
 class DataLogger:
-    def __init__(self, frequency, column_names, batch_exp=12, debug=False, maxruntime=0):
-        self.debug = debug
-
+    def __init__(self, frequency, column_names, batch_exp=12, maxruntime=0, pdf_flag=False):
         self.usb20x = usb_204()
 
         self.batch_exp = batch_exp
@@ -93,6 +101,7 @@ class DataLogger:
         self.timestamp = 0
         self.transfer_count = 0
         self.maxruntime = maxruntime
+        self.pdf_flag = pdf_flag
 
         self.data = pd.DataFrame(columns=column_names)
 
@@ -113,7 +122,7 @@ class DataLogger:
 
         self.usb20x.AInScanStop()
         self.usb20x.AInScanClearFIFO()
-        self.usb20x.AInScanStart(0, self.frequency * self.nchan, self.channels, self.options, 0, 0)
+        self.usb20x.AInScanStart(0, self.frequency * self.nchan, self.channels, self.options, self.usb20x.TRIGGER, self.usb20x.LEVEL_HIGH)
 
         self.restart_timestamp = perf_counter()
         self.timestamp = 0
@@ -121,10 +130,10 @@ class DataLogger:
 
         self.data = pd.DataFrame(columns=self.column_names)
 
-        logging.debug('Started USB_204')
+        logging.info('Started USB_204')
 
     def run(self, pyqt_callback=None):
-        logging.debug('Running data logging...')
+        logging.info('Running data logging...')
 
         p = ProducerThread(name='producer', data_logger=self)
         p.daemon = True
@@ -138,7 +147,11 @@ class DataLogger:
         )
         c.daemon = True
 
+        if not exit_flag.empty():
+            exit_flag.get()
+
         try:
+            logging.info('Waiting for trigger...')
             p.start()
             time.sleep(2)
             c.start()
@@ -146,7 +159,7 @@ class DataLogger:
 
             c.join()
         except (KeyboardInterrupt, SystemExit):
-            logging.debug('Stopping logging')
+            logging.info('Stopping logging')
             exit_flag.put(True)
 
         c.join()
@@ -182,9 +195,8 @@ class DataLogger:
 
         self.transfer_count += 1
 
-        if self.debug:
-            seconds_behind = int(perf_counter() - self.restart_timestamp - (self.timestamp))
-            logging.debug(f'{self.transfer_count}: Got {int(len(raw_data) / self.nchan)} data points  -  (currently {seconds_behind} seconds behind)  -  Recorded time: {int(self.timestamp)} seconds')
+        seconds_behind = int(perf_counter() - self.restart_timestamp - (self.timestamp))
+        logging.info(f'{self.transfer_count}: Got {int(len(raw_data) / self.nchan)} data points  -  (currently {seconds_behind} seconds behind)  -  Recorded time: {int(self.timestamp)} seconds')
 
     def print_debug_info(self):
         time_since_restart = perf_counter() - self.restart_timestamp
@@ -195,8 +207,7 @@ class DataLogger:
         logging.debug(f'Number of bulk transfers: {self.transfer_count}')
 
     def reset(self, wait_for_reset=True):
-        if self.debug:
-            self.print_debug_info()
+        self.print_debug_info()
 
         self.usb20x.Reset()
 
@@ -204,9 +215,9 @@ class DataLogger:
 
         reset_in_progress = True
 
+        logging.info(f'Restarting USB_204...')
         while reset_in_progress and wait_for_reset:
             try:
-                logging.debug(f'Restarting USB_204...')
                 self.start()
                 reset_in_progress = False
             except:
@@ -221,7 +232,9 @@ class DataLogger:
 
     def output_data(self):
         self.output_to_csv()
-        self.output_to_pdf()
+
+        if self.pdf_flag:
+            self.output_to_pdf()
 
     def output_to_csv(self):
         self.data.to_csv(
