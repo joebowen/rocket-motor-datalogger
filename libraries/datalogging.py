@@ -87,13 +87,14 @@ class ConsumerThread(threading.Thread):
 
 
 class DataLogger:
-    def __init__(self, frequency, column_names, batch_exp=12, maxruntime=0, pdf_flag=False):
+    def __init__(self, frequency, sensors, batch_exp=12, maxruntime=0, pdf_flag=False):
         self.usb20x = usb_204()
 
         self.batch_exp = batch_exp
-        self.column_names = column_names
+        self.sensors = sensors
+        self.sensor_names = [sensor['sensor_name'] for sensor_id, sensor in sensors.items()]
 
-        self.nchan = len(self.column_names)  # Number of channels to measure
+        self.nchan = len(self.sensors)  # Number of channels to measure
         self.frequency = frequency
 
         self.timestamp_label = datetime.now().strftime('%y-%b-%d_%H:%M:%S')
@@ -108,7 +109,7 @@ class DataLogger:
         self.p = None
         self.c = None
 
-        self.data = pd.DataFrame(columns=column_names)
+        self.data = pd.DataFrame(columns=self.sensor_names)
 
         self.channels = 0
         for i in range(self.nchan):
@@ -134,7 +135,7 @@ class DataLogger:
         self.timestamp = 0
         self.transfer_count = 0
 
-        self.data = pd.DataFrame(columns=self.column_names)
+        self.data = pd.DataFrame(columns=self.sensor_names)
 
         self.qt_queue = qt_queue
 
@@ -194,7 +195,16 @@ class DataLogger:
                 df_index.append(self.timestamp)
                 df_temp.append(voltage)
 
-            temp_df = pd.DataFrame(df_temp, columns=self.column_names, index=df_index)
+            temp_df = pd.DataFrame(df_temp, columns=self.sensor_names, index=df_index)
+
+            for sensor_id, sensor in self.sensors.items():
+                temp_df[sensor['sensor_name']].apply(sensor['formula'], **sensor['input'])
+
+                temp_df[sensor['sensor_name']].apply(
+                    lambda v, linear_adj, scalar_adj: v * scalar_adj + linear_adj,
+                    linear_adj=sensor['linear_adj'],
+                    scalar_adj=sensor['scalar_adj']
+                )
 
             if self.qt_queue:
                 self.qt_queue.put(temp_df)
@@ -245,6 +255,11 @@ class DataLogger:
         if self.pdf_flag:
             self.output_to_pdf()
 
+    def get_data(self):
+        df = pd.read_csv(f'output_data/{self.timestamp_label}/data.csv')
+
+        return df
+
     def output_to_csv(self, write_mode='a'):
         if not os.path.exists(f'output_data/{self.timestamp_label}'):
             os.makedirs(f'output_data/{self.timestamp_label}')
@@ -262,22 +277,21 @@ class DataLogger:
         )
 
         # Reset data to be appended next time
-        self.data = pd.DataFrame(columns=self.column_names)
+        self.data = pd.DataFrame(columns=self.sensor_names)
 
     def output_to_pdf(self):
-        df = pd.read_csv(
-            f'output_data/{self.timestamp_label}/data.csv'
-        )
+        df = pd.read_csv(f'output_data/{self.timestamp_label}/data.csv')
 
-        for index, column_name in enumerate(self.column_names):
+        for sensor_id, sensor in self.sensors.items():
             fig = plt.figure()
-            fig.suptitle(f'Rocket Motor Test - {self.timestamp_label} - {column_name}')
+            fig.suptitle(f'Rocket Motor Test - {self.timestamp_label} - {sensor["sensor_name"]}')
 
             subplot = fig.add_subplot(1, 1, 1)
-            subplot.plot(df[column_name])
+
+            subplot.plot(df[sensor['sensor_name']])
 
             subplot.set_xlabel('Seconds')
-            subplot.set_ylabel('Voltage')
-            subplot.set_ylim([-12, 12])
+            subplot.set_ylabel(sensor['units'])
+            subplot.set_ylim([sensor['min'], sensor['max']])
 
-            fig.savefig(f'output_data/{self.timestamp_label}/{column_name}.pdf', dpi=1000, orientation='landscape', bbox_inches='tight')
+            fig.savefig(f'output_data/{self.timestamp_label}/{sensor["sensor_name"]}.pdf', dpi=1000, orientation='landscape', bbox_inches='tight')

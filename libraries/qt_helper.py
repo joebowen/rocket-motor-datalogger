@@ -58,13 +58,15 @@ class QTHelper:
         data_logger.start(qt_queue)
         data_logger.run()
 
-        CustomMainWindow(data_logger.column_names)
+        CustomMainWindow(data_logger.sensors)
         sys.exit(app.exec_())
 
 
 class CustomMainWindow(QMainWindow):
-    def __init__(self, column_names):
+    def __init__(self, sensors):
         super(CustomMainWindow, self).__init__()
+
+        self.sensors = sensors
 
         # Define the geometry of the main window
         self.setGeometry(300, 300, 2000, 1000)
@@ -77,9 +79,15 @@ class CustomMainWindow(QMainWindow):
         self.setCentralWidget(self.FRAME_A)
         # Place the matplotlib figure
         self.myFigs = dict()
-        for index, column_name in enumerate(column_names):
-            self.myFigs[column_name] = CustomFigCanvas(column_name)
-            self.LAYOUT_A.addWidget(self.myFigs[column_name], *(index, 1))
+        for index, sensor_name in enumerate(self.sensors.keys()):
+            self.myFigs[sensor_name] = CustomFigCanvas(
+                self.sensors[sensor_name]['sensor_name'],
+                self.sensors[sensor_name]['units'],
+                self.sensors[sensor_name]['min'],
+                self.sensors[sensor_name]['max']
+            )
+
+            self.LAYOUT_A.addWidget(self.myFigs[sensor_name], *(index, 1))
 
         # Add the callbackfunc to ..
         my_data_loop = threading.Thread(
@@ -92,16 +100,18 @@ class CustomMainWindow(QMainWindow):
         self.show()
 
     def add_data_callback_func(self, df):
-        for col_name, col_data in df.iteritems():
-            for value in col_data:
-                self.myFigs[col_name].add_data(value)
+        for sensor_id, sensor in self.sensors.items():
+            df[sensor['sensor_name']].apply(sensor['formula'], **sensor['input'])
+
+            for value in df[sensor['sensor_name']]:
+                self.myFigs[sensor_id].add_data(value)
 
     def closeEvent(self, event):
         event.accept()
 
 
 class CustomFigCanvas(FigureCanvas, TimedAnimation):
-    def __init__(self, column_name):
+    def __init__(self, sensor_name, sensor_units, sensor_min, sensor_max):
         self.added_data = []
         # The data
         self.xlim = 3000
@@ -111,9 +121,9 @@ class CustomFigCanvas(FigureCanvas, TimedAnimation):
         self.fig = Figure(figsize=(5, 5), dpi=100)
         self.ax1 = self.fig.add_subplot(111)
         # self.ax1 settings
-        self.ax1.set_title(column_name)
+        self.ax1.set_title(sensor_name)
         self.ax1.set_xlabel('time')
-        self.ax1.set_ylabel('voltage')
+        self.ax1.set_ylabel(sensor_units)
         self.line1 = Line2D([], [], color='blue')
         self.line1_tail = Line2D([], [], color='red', linewidth=2)
         self.line1_head = Line2D([], [], color='red', marker='o', markeredgecolor='r')
@@ -121,7 +131,7 @@ class CustomFigCanvas(FigureCanvas, TimedAnimation):
         self.ax1.add_line(self.line1_tail)
         self.ax1.add_line(self.line1_head)
         self.ax1.set_xlim(0, self.xlim - 1)
-        self.ax1.set_ylim(-10.5, 10.5)
+        self.ax1.set_ylim(sensor_min, sensor_max)
         FigureCanvas.__init__(self, self.fig)
         TimedAnimation.__init__(self, self.fig, interval=1, blit=True)
 

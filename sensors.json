@@ -1,0 +1,67 @@
+{
+    "chamberpressure": {
+        "channel": 1,
+        "input": {
+            "max_psi": 1000,
+            "opamp_mul": 4.3
+        },
+        "linear_adj": 0,
+        "max": 1000,
+        "min": 0,
+        "scalar_adj": 1,
+        "sensor_name": "Chamber Pressure",
+        "sensor_type": "pressure",
+        "units": "PSI"
+    },
+    "loadcell": {
+        "channel": 0,
+        "input": {},
+        "linear_adj": 0,
+        "max": 111.20555,
+        "min": 0,
+        "scalar_adj": 1,
+        "sensor_name": "Load Cell",
+        "sensor_type": "loadcell",
+        "units": "Newtons"
+    },
+    "secondtemp": {
+        "channel": 3,
+        "input": {
+            "opamp_mul": 4.3
+        },
+        "linear_adj": 0,
+        "max": 750,
+        "min": 20,
+        "scalar_adj": 1,
+        "sensor_name": "Second Temperature",
+        "sensor_type": "temp",
+        "units": "Celsius"
+    },
+    "tankpressure": {
+        "channel": 2,
+        "input": {
+            "max_psi": 1500,
+            "opamp_mul": 4.3
+        },
+        "linear_adj": 0,
+        "max": 1500,
+        "min": 0,
+        "scalar_adj": 1,
+        "sensor_name": "Tank Pressure",
+        "sensor_type": "pressure",
+        "units": "PSI"
+    },
+    "tanktemp": {
+        "channel": 4,
+        "input": {
+            "opamp_mul": 4.3
+        },
+        "linear_adj": 0,
+        "max": 40,
+        "min": -100,
+        "scalar_adj": 1,
+        "sensor_name": "Tank Temperature",
+        "sensor_type": "temp",
+        "units": "Celsius"
+    }
+}
