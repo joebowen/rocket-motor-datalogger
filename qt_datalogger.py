@@ -10,8 +10,8 @@ logging.basicConfig(level=logging.INFO,
                     format='(%(threadName)-9s) %(message)s',)
 
 
-def load_config(config_file='sensors.json'):
-    with open(config_file) as config_file:
+def load_config(config_file_name='sensors.json'):
+    with open(config_file_name) as config_file:
         config = json.load(config_file)
 
         for sensor_id, sensor in config.items():
@@ -27,11 +27,11 @@ def load_config(config_file='sensors.json'):
         return config
 
 
-def save_config(sensors, config_file='sensors.json'):
+def save_config(sensors, config_file_name='sensors.json'):
     for sensor_id, sensor in sensors.items():
         del (sensor['formula'])
 
-    with open(config_file, mode='w') as config_file:
+    with open(config_file_name, mode='w') as config_file:
         json.dump(sensors, config_file, indent=4, sort_keys=True)
 
 
