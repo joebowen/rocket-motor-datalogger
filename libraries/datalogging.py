@@ -324,3 +324,6 @@ class DataLogger:
             subplot.set_ylim([sensor['min'], sensor['max']])
 
             fig.savefig(f'output_data/{self.timestamp_label}/{sensor["sensor_name"]}.pdf', dpi=1000, orientation='landscape', bbox_inches='tight')
+
+            del fig
+
