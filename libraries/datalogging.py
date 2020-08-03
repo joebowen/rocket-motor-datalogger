@@ -39,35 +39,33 @@ class ProducerThread(threading.Thread):
 
                         if not stop_flag:
                             logging.info('Stopping due to stop flag trigger going low...')
-                            self.data_logger.reset(wait_for_reset=True)
-                            exit_flag.put(True)
+                            self.data_logger.stop()
 
                     except USBError as e:
                         if e.value == -7:
                             # Normal, the device is probably waiting for a trigger
                             logging.debug(f'USB Timeout occurred, probably waiting for trigger')
                             time.sleep(random.random())
+                            logging.info(f'Please turn on the green switch now. (or toggle the switch)')
                         else:
                             raise
                     except mccOverrunError:
                         self.data_logger.output_data()
-                        self.data_logger.reset(wait_for_reset=True)
+                        self.data_logger.stop()
 
                     time.sleep(random.random())
 
         except (KeyboardInterrupt, SystemExit):
             self.data_logger.stop()
-            exit_flag.put(True)
 
 
 class ConsumerThread(threading.Thread):
-    def __init__(self, data_logger, maxruntime, start_timestamp, group=None, target=None, name=None, args=(), kwargs=None, verbose=None, daemon=True):
+    def __init__(self, data_logger, maxruntime, group=None, target=None, name=None, args=(), kwargs=None, verbose=None, daemon=True):
         super(ConsumerThread, self).__init__()
         self.target = target
         self.name = name
         self.data_logger = data_logger
         self.maxruntime = maxruntime
-        self.start_timestamp = start_timestamp
 
     def run(self):
         try:
@@ -76,35 +74,42 @@ class ConsumerThread(threading.Thread):
                     item = data_queue.get()
                     self.data_logger.process_data(item)
 
-                if self.maxruntime and ((perf_counter() - self.start_timestamp) / 60) > self.maxruntime:
-                    sys.exit()
+                    if self.maxruntime and (self.data_logger.timestamp / 60) > self.maxruntime:
+                        self.data_logger.stop()
 
                 time.sleep(0.001)
 
         except (KeyboardInterrupt, SystemExit):
             self.data_logger.stop()
-            exit_flag.put(True)
 
 
 class DataLogger:
-    def __init__(self, frequency, sensors, batch_exp=12, maxruntime=0, pdf_flag=False):
+    def __init__(self, frequency, sensors, batch_exp=12, maxruntime=0, pdf_flag=False, calibration=False):
         self.usb20x = usb_204()
+
+        self.calibration = calibration
 
         self.batch_exp = batch_exp
         self.sensors = sensors
-        self.sensor_names = [sensor['sensor_name'] for sensor_id, sensor in sensors.items()]
+
+        self.sensor_names = [None] * len(self.sensors)
+        for sensor_id, sensor in self.sensors.items():
+            self.sensor_names[sensor['channel']] = sensor['sensor_name']
+
+        logging.debug(f'Sensor Names: {self.sensor_names}')
 
         self.nchan = len(self.sensors)  # Number of channels to measure
         self.frequency = frequency
 
         self.timestamp_label = datetime.now().strftime('%y-%b-%d_%H:%M:%S')
         self.restart_timestamp = perf_counter()
-        self.start_timestamp = perf_counter()
         self.timestamp = 0
         self.transfer_count = 0
         self.maxruntime = maxruntime
         self.pdf_flag = pdf_flag
         self.qt_queue = None
+
+        self.exit_flag = exit_flag
 
         self.p = None
         self.c = None
@@ -120,15 +125,17 @@ class DataLogger:
         else:
             self.options = self.usb20x.STALL_ON_OVERRUN
 
-        self.flag = fcntl.fcntl(sys.stdin, fcntl.F_GETFL)
-        fcntl.fcntl(sys.stdin, fcntl.F_SETFL, self.flag | os.O_NONBLOCK)
-
     def start(self, qt_queue=None):
         self.usb20x = usb_204()
 
         self.usb20x.AInScanStop()
         self.usb20x.AInScanClearFIFO()
-        self.usb20x.AInScanStart(0, self.frequency * self.nchan, self.channels, self.options, self.usb20x.TRIGGER, self.usb20x.LEVEL_HIGH)
+
+        stop_flag = self.usb20x.DPort()
+        if stop_flag:
+            self.usb20x.AInScanStart(0, self.frequency * self.nchan, self.channels, self.options, self.usb20x.NO_TRIGGER, self.usb20x.LEVEL_HIGH)
+        else:
+            self.usb20x.AInScanStart(0, self.frequency * self.nchan, self.channels, self.options, self.usb20x.TRIGGER, self.usb20x.EDGE_RISING)
 
         self.timestamp_label = datetime.now().strftime('%y-%b-%d %H:%M:%S')
         self.restart_timestamp = perf_counter()
@@ -157,24 +164,26 @@ class DataLogger:
             name='consumer',
             daemon=True,
             data_logger=self,
-            maxruntime=self.maxruntime,
-            start_timestamp=self.start_timestamp
+            maxruntime=self.maxruntime
         )
 
-        if not exit_flag.empty():
+        while not exit_flag.empty():
             exit_flag.get()
 
         self.p.start()
         self.c.start()
 
-    def wait_for_keyboard(self):
+    def wait_for_datalogger(self):
         try:
-            logging.info('Waiting for keyboard...')
+            if self.maxruntime:
+                logging.info(f'Collecting data for {self.maxruntime} minutes...')
+            else:
+                logging.info('Collecting data until green switch is turned off...')
 
             self.c.join()
         except (KeyboardInterrupt, SystemExit):
             logging.info('Stopping logging')
-            exit_flag.put(True)
+            self.stop()
 
     def collect_data(self):
         raw_data = self.usb20x.AInScanRead(2**self.batch_exp)
@@ -186,7 +195,7 @@ class DataLogger:
             df_index = []
             df_temp = []
             for index in range(int(len(raw_data) / self.nchan)):
-                voltage = list()
+                voltage = []
                 for chan_index in range(self.nchan):
                     voltage.append(self.usb20x.volts(raw_data[(index * self.nchan) + chan_index]))
 
@@ -197,14 +206,23 @@ class DataLogger:
 
             temp_df = pd.DataFrame(df_temp, columns=self.sensor_names, index=df_index)
 
-            for sensor_id, sensor in self.sensors.items():
-                temp_df[sensor['sensor_name']].apply(sensor['formula'], **sensor['input'])
+            if not self.calibration:
+                for sensor_id, sensor in self.sensors.items():
+                    temp_df[sensor['sensor_name']] = temp_df[sensor['sensor_name']].apply(
+                        lambda v, linear_adj, opamp_mul: (v + linear_adj) / opamp_mul,
+                        linear_adj=sensor['linear_adj'],
+                        opamp_mul=sensor['opamp_mul']
+                    )
 
-                temp_df[sensor['sensor_name']].apply(
-                    lambda v, linear_adj, scalar_adj: v * scalar_adj + linear_adj,
-                    linear_adj=sensor['linear_adj'],
-                    scalar_adj=sensor['scalar_adj']
-                )
+                    temp_df[sensor['sensor_name']] = temp_df[sensor['sensor_name']].apply(
+                        sensor['formula'],
+                        **sensor['input']
+                    )
+
+                    temp_df[sensor['sensor_name']] = temp_df[sensor['sensor_name']].apply(
+                        lambda v, scalar_adj: v * scalar_adj,
+                        scalar_adj=sensor['scalar_adj']
+                    )
 
             if self.qt_queue:
                 self.qt_queue.put(temp_df)
@@ -215,7 +233,7 @@ class DataLogger:
 
         self.transfer_count += 1
 
-        logging.info(f'{self.transfer_count}: Got {int(len(raw_data) / self.nchan)} data points  -  Recorded time: {int(self.timestamp)} seconds')
+        logging.info(f'{self.transfer_count}: Got {len(raw_data) / self.nchan} data points  -  Recorded time: {int(self.timestamp)} seconds')
 
     def print_debug_info(self):
         time_since_restart = perf_counter() - self.restart_timestamp
@@ -225,8 +243,15 @@ class DataLogger:
         logging.debug(f'Time since last restart minus recorded time: {int(time_since_restart - (self.timestamp))} seconds')
         logging.debug(f'Number of bulk transfers: {self.transfer_count}')
 
-    def reset(self, wait_for_reset=True):
+    def reset(self):
         self.print_debug_info()
+
+        while not data_queue.empty():
+            data_queue.get()
+
+        if self.qt_queue:
+            while not self.qt_queue.empty():
+                self.qt_queue.get()
 
         self.usb20x.Reset()
 
@@ -235,9 +260,10 @@ class DataLogger:
         reset_in_progress = True
 
         logging.info(f'Restarting USB_204...')
-        while reset_in_progress and wait_for_reset:
+        while reset_in_progress:
             try:
-                self.start()
+                self.usb20x = usb_204()
+                logging.debug(f'Status: {self.usb20x.Status()}')
                 reset_in_progress = False
             except:
                 time.sleep(sleep_delay)
@@ -246,7 +272,7 @@ class DataLogger:
                     raise
 
     def stop(self):
-        fcntl.fcntl(sys.stdin, fcntl.F_SETFL, self.flag)
+        exit_flag.put(True)
         self.usb20x.AInScanStop()
 
     def output_data(self):

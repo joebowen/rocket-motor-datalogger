@@ -49,24 +49,24 @@ def data_send_loop(add_data_callback_func):
 
 
 class QTHelper:
-    def __init__(self, data_logger):
+    def __init__(self, data_logger, calibration=False):
         app = QApplication(sys.argv)
         QApplication.setStyle(QStyleFactory.create('Plastique'))
-
-        data_logger = data_logger
 
         data_logger.start(qt_queue)
         data_logger.run()
 
-        CustomMainWindow(data_logger.sensors)
+        CustomMainWindow(data_logger, calibration)
+
         sys.exit(app.exec_())
 
 
 class CustomMainWindow(QMainWindow):
-    def __init__(self, sensors):
+    def __init__(self, data_logger, calibration=False):
         super(CustomMainWindow, self).__init__()
 
-        self.sensors = sensors
+        self.sensors = data_logger.sensors
+        self.data_logger = data_logger
 
         # Define the geometry of the main window
         self.setGeometry(300, 300, 2000, 1000)
@@ -84,7 +84,8 @@ class CustomMainWindow(QMainWindow):
                 self.sensors[sensor_name]['sensor_name'],
                 self.sensors[sensor_name]['units'],
                 self.sensors[sensor_name]['min'],
-                self.sensors[sensor_name]['max']
+                self.sensors[sensor_name]['max'],
+                calibration
             )
 
             self.LAYOUT_A.addWidget(self.myFigs[sensor_name], *(index, 1))
@@ -93,9 +94,9 @@ class CustomMainWindow(QMainWindow):
         my_data_loop = threading.Thread(
             name='my_data_loop',
             target=data_send_loop,
+            daemon=True,
             args=(self.add_data_callback_func,)
         )
-        my_data_loop.setDaemon(True)
         my_data_loop.start()
         self.show()
 
@@ -107,11 +108,12 @@ class CustomMainWindow(QMainWindow):
                 self.myFigs[sensor_id].add_data(value)
 
     def closeEvent(self, event):
+        self.data_logger.stop()
         event.accept()
 
 
 class CustomFigCanvas(FigureCanvas, TimedAnimation):
-    def __init__(self, sensor_name, sensor_units, sensor_min, sensor_max):
+    def __init__(self, sensor_name, sensor_units, sensor_min, sensor_max, calibration):
         self.added_data = []
         # The data
         self.xlim = 3000
@@ -123,7 +125,6 @@ class CustomFigCanvas(FigureCanvas, TimedAnimation):
         # self.ax1 settings
         self.ax1.set_title(sensor_name)
         self.ax1.set_xlabel('time')
-        self.ax1.set_ylabel(sensor_units)
         self.line1 = Line2D([], [], color='blue')
         self.line1_tail = Line2D([], [], color='red', linewidth=2)
         self.line1_head = Line2D([], [], color='red', marker='o', markeredgecolor='r')
@@ -131,7 +132,14 @@ class CustomFigCanvas(FigureCanvas, TimedAnimation):
         self.ax1.add_line(self.line1_tail)
         self.ax1.add_line(self.line1_head)
         self.ax1.set_xlim(0, self.xlim - 1)
-        self.ax1.set_ylim(sensor_min, sensor_max)
+
+        if calibration:
+            self.ax1.set_ylim(-10, 10)
+            self.ax1.set_ylabel('V')
+        else:
+            self.ax1.set_ylim(sensor_min, sensor_max)
+            self.ax1.set_ylabel(sensor_units)
+
         FigureCanvas.__init__(self, self.fig)
         TimedAnimation.__init__(self, self.fig, interval=1, blit=True)
 
