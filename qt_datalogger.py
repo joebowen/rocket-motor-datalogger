@@ -139,8 +139,8 @@ def main(freq, maxruntime, batch_exp, debug, onetrigger, realtimegraph, opamp_ca
 
                 sensor['scalar_adj'] = loadcell_max_newtons / (mean_load - min_no_load)
 
-                # Add 50% to the max for wiggle room and then round up to the nearest 100 for clean charts
-                sensor['max'] = roundup(loadcell_max_newtons * 1.5, 100)
+                # Add 50% to the max for wiggle room and then round up to the nearest 10 for clean charts
+                sensor['max'] = roundup(loadcell_max_newtons * 1.5, 10)
 
                 logging.info(f'New max value: {sensor["max"]}')
 
