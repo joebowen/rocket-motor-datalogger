@@ -104,7 +104,7 @@ def main(freq, maxruntime, batch_exp, debug, onetrigger, realtimegraph, opamp_ca
         test_data = data_logger.get_data()
 
         current_temp_F = input("Enter the current sensor temp (F): ")
-        current_temp_C = (current_temp_F - 32) * (5 / 9)
+        current_temp_C = (float(current_temp_F) - 32) * (5 / 9)
 
         logging.info(f'Current temp: {int(current_temp_C)} C')
 
