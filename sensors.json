@@ -2,11 +2,11 @@
     "channel0": {
         "channel": 0,
         "input": {},
-        "linear_adj": -0.1318359375,
+        "linear_adj": 0.6787109375,
         "max": 199.99999999999997,
         "min": 0,
         "opamp_mul": 1,
-        "scalar_adj": 15.409939011316197,
+        "scalar_adj": 14.606717506745467,
         "sensor_name": "Load Cell",
         "sensor_type": "loadcell",
         "units": "Newtons"
@@ -16,7 +16,7 @@
         "input": {
             "max_psi": 1000
         },
-        "linear_adj": 7.642059326171875,
+        "linear_adj": 7.740650177001953,
         "max": 1000,
         "min": 0,
         "opamp_mul": 4.3,
@@ -30,7 +30,7 @@
         "input": {
             "max_psi": 1600
         },
-        "linear_adj": 9.244623184204102,
+        "linear_adj": 9.30920124053955,
         "max": 1600,
         "min": 0,
         "opamp_mul": 4.3,
@@ -42,7 +42,7 @@
     "channel3": {
         "channel": 3,
         "input": {},
-        "linear_adj": 2.536898884243435,
+        "linear_adj": 2.6637645467122395,
         "max": 40,
         "min": -100,
         "opamp_mul": 4.3,
@@ -54,7 +54,7 @@
     "channel4": {
         "channel": 4,
         "input": {},
-        "linear_adj": 13.444443973965114,
+        "linear_adj": 13.581423352559408,
         "max": 750,
         "min": 20,
         "opamp_mul": 4.3,

@@ -13,7 +13,6 @@ import numpy as np
 import matplotlib
 import queue
 import time
-import logging
 
 import pandas as pd
 
@@ -69,7 +68,7 @@ class CustomMainWindow(QMainWindow):
         self.data_logger = data_logger
 
         # Define the geometry of the main window
-        self.setGeometry(300, 300, 2000, 1000)
+        self.setGeometry(0, 0, 3000, 2000)
         self.setWindowTitle("Load Cell Test")
         # Create FRAME_A
         self.FRAME_A = QFrame(self)
@@ -85,7 +84,8 @@ class CustomMainWindow(QMainWindow):
                 self.sensors[sensor_name]['units'],
                 self.sensors[sensor_name]['min'],
                 self.sensors[sensor_name]['max'],
-                calibration
+                calibration,
+                data_logger.frequency
             )
 
             self.LAYOUT_A.addWidget(self.myFigs[sensor_name], *(index, 1))
@@ -109,23 +109,25 @@ class CustomMainWindow(QMainWindow):
 
     def closeEvent(self, event):
         self.data_logger.stop()
+        self.data_logger.wait_for_datalogger()
+        self.data_logger.output_data()
         event.accept()
 
 
 class CustomFigCanvas(FigureCanvas, TimedAnimation):
-    def __init__(self, sensor_name, sensor_units, sensor_min, sensor_max, calibration):
+    def __init__(self, sensor_name, sensor_units, sensor_min, sensor_max, calibration, frequency):
         self.added_data = []
         # The data
-        self.xlim = 3000
+        self.xlim = (2 * 60) * frequency  # Chart the past 2 minutes regardless of the frequency
         self.n = np.linspace(0, self.xlim - 1, self.xlim)
         self.y = (self.n * 0.0) + 50
         # The window
-        self.fig = Figure(figsize=(5, 5), dpi=100)
+        self.fig = Figure(figsize=(5, 5), dpi=75)
         self.ax1 = self.fig.add_subplot(111)
         # self.ax1 settings
         self.ax1.set_title(sensor_name)
-        self.ax1.set_xlabel('time')
-        self.line1 = Line2D([], [], color='blue')
+        self.ax1.set_xlabel('datapoints')
+        self.line1 = Line2D([], [], color='blue', linewidth=2)
         self.line1_tail = Line2D([], [], color='red', linewidth=2)
         self.line1_head = Line2D([], [], color='red', marker='o', markeredgecolor='r')
         self.ax1.add_line(self.line1)
@@ -134,11 +136,17 @@ class CustomFigCanvas(FigureCanvas, TimedAnimation):
         self.ax1.set_xlim(0, self.xlim - 1)
 
         if calibration:
-            self.ax1.set_ylim(-10, 10)
+            self.ax1.set_ylim(-12, 12)
             self.ax1.set_ylabel('V')
+            self.ax1.yaxis.set_label_position("right")
+            self.ax1.yaxis.tick_right()
         else:
-            self.ax1.set_ylim(sensor_min, sensor_max)
+            wiggle_room = (sensor_max - sensor_min) * .10
+
+            self.ax1.set_ylim(sensor_min - wiggle_room, sensor_max + wiggle_room)
             self.ax1.set_ylabel(sensor_units)
+            self.ax1.yaxis.set_label_position("right")
+            self.ax1.yaxis.tick_right()
 
         FigureCanvas.__init__(self, self.fig)
         TimedAnimation.__init__(self, self.fig, interval=1, blit=True)

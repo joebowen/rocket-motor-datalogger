@@ -1,6 +1,4 @@
 import os
-import fcntl
-import logging
 import random
 import queue
 import threading
@@ -46,7 +44,6 @@ class ProducerThread(threading.Thread):
                             # Normal, the device is probably waiting for a trigger
                             logging.debug(f'USB Timeout occurred, probably waiting for trigger')
                             time.sleep(random.random())
-                            logging.info(f'Please turn on the green switch now. (or toggle the switch)')
                         else:
                             raise
                     except mccOverrunError:
@@ -131,11 +128,16 @@ class DataLogger:
         self.usb20x.AInScanStop()
         self.usb20x.AInScanClearFIFO()
 
-        stop_flag = self.usb20x.DPort()
-        if stop_flag:
-            self.usb20x.AInScanStart(0, self.frequency * self.nchan, self.channels, self.options, self.usb20x.NO_TRIGGER, self.usb20x.LEVEL_HIGH)
+        logging.info('Turn on the green switch when ready to start logging...')
+        while not self.usb20x.DPort():
+            time.sleep(random.random())
+
+        self.usb20x.AInScanStart(0, self.frequency * self.nchan, self.channels, self.options, self.usb20x.NO_TRIGGER, self.usb20x.LEVEL_HIGH)
+
+        if self.maxruntime:
+            logging.info(f'Collecting data for {self.maxruntime:.2} minutes...')
         else:
-            self.usb20x.AInScanStart(0, self.frequency * self.nchan, self.channels, self.options, self.usb20x.TRIGGER, self.usb20x.EDGE_RISING)
+            logging.info('Collecting data until green switch is turned off or code is exited...')
 
         self.timestamp_label = datetime.now().strftime('%y-%b-%d %H:%M:%S')
         self.restart_timestamp = perf_counter()
@@ -175,14 +177,8 @@ class DataLogger:
 
     def wait_for_datalogger(self):
         try:
-            if self.maxruntime:
-                logging.info(f'Collecting data for {self.maxruntime} minutes...')
-            else:
-                logging.info('Collecting data until green switch is turned off...')
-
             self.c.join()
         except (KeyboardInterrupt, SystemExit):
-            logging.info('Stopping logging')
             self.stop()
 
     def collect_data(self):
@@ -204,6 +200,8 @@ class DataLogger:
                 df_index.append(self.timestamp)
                 df_temp.append(voltage)
 
+            logging.debug(f'Sample Voltages: {df_temp[0]}')
+
             temp_df = pd.DataFrame(df_temp, columns=self.sensor_names, index=df_index)
 
             if not self.calibration:
@@ -224,6 +222,8 @@ class DataLogger:
                         scalar_adj=sensor['scalar_adj']
                     )
 
+            logging.debug(f'Sample transformed measurements:\n{temp_df.iloc[0]}')
+
             if self.qt_queue:
                 self.qt_queue.put(temp_df)
 
@@ -233,7 +233,7 @@ class DataLogger:
 
         self.transfer_count += 1
 
-        logging.info(f'{self.transfer_count}: Got {len(raw_data) / self.nchan} data points  -  Recorded time: {int(self.timestamp)} seconds')
+        logging.debug(f'{self.transfer_count}: Got {len(raw_data) / self.nchan} data points  -  Recorded time: {int(self.timestamp)} seconds')
 
     def print_debug_info(self):
         time_since_restart = perf_counter() - self.restart_timestamp
@@ -272,7 +272,10 @@ class DataLogger:
                     raise
 
     def stop(self):
-        exit_flag.put(True)
+        logging.info('Stopping logging')
+
+        if not exit_flag.full():
+            exit_flag.put(True)
         self.usb20x.AInScanStop()
 
     def output_data(self):
@@ -314,7 +317,7 @@ class DataLogger:
 
             subplot = fig.add_subplot(1, 1, 1)
 
-            subplot.plot(df[sensor['sensor_name']])
+            subplot.plot(df[sensor['sensor_name']], linewidth=0.5)
 
             subplot.set_xlabel('Seconds')
             subplot.set_ylabel(sensor['units'])
