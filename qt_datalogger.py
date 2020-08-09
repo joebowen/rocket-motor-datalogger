@@ -44,63 +44,48 @@ def roundup(x, mod):
 
 @click.command()
 @click.option('--freq', type=int, default=1000, help='Data Logging Frequency - Default: 1000 Hz')
-@click.option('--maxruntime', type=int, default=0, help='Maximum Run Time (minutes) - Default: 0 (for continuous)')
-@click.option('--batch-exp', type=int, default=10, help='Data Read Batch Exponent - Default: 10 (ie. 2^10 records per batch)')
-@click.option('--debug', is_flag=True, help='Set for more debugging')
-@click.option('--onetrigger', is_flag=True, help='Only log one event. If not set, it will loop')
+@click.option('--maxruntime', type=int, default=0, help='Maximum Run Time (seconds) - Default: 0 (for continuous)')
+@click.option('--debug', is_flag=True, help='Turn on debugging')
+@click.option('--loop', is_flag=True, help='Continue capturing logs in a loop')
 @click.option('--realtimegraph', is_flag=True, help='Real time QT5 graph')
-@click.option('--opamp_cal', is_flag=True, help='Use this mode to assist with calibrating the op-amp variable resistors')
-@click.option('--scaling_cal', is_flag=True, help='Use this mode to auto calibrate the channels and determine the appropriate linear_adj and scalar_adj')
-@click.option('--config', type=str, default='sensors.json', help='Config file')
-def main(freq, maxruntime, batch_exp, debug, onetrigger, realtimegraph, opamp_cal, scaling_cal, config):
-    sensors = load_config(config)
-
-    calibration = False
-    pdf_flag = True
-
-    if scaling_cal:
-        freq = 200
-        realtimegraph = False
-        batch_exp = 8
-        onetrigger = True
-        pdf_flag = False
-        maxruntime = 20/60  # 20 seconds
-        calibration = True
-
-    if opamp_cal:
-        freq = 500
-        realtimegraph = True
-        batch_exp = 9
-        onetrigger = True
-        pdf_flag = False
-        maxruntime = 0
-        calibration = True
-
+@click.option('--calibrate', is_flag=True, help='Use this mode to calibrate the channels')
+@click.option('--config', type=str, default='sensors.json', help='Config file - Default: sensors.json')
+def main(freq, maxruntime, debug, loop, realtimegraph, calibrate, config):
     if debug:
         logging.getLogger().setLevel(logging.DEBUG)
 
-    data_logger = DataLogger(freq, sensors, batch_exp, maxruntime, pdf_flag, calibration)
-    data_logger.reset()
+    sensors = load_config(config)
+
+    if calibrate:
+        freq = 200
+        realtimegraph = True
+        loop = False
+        maxruntime = 0
+
+    data_logger = DataLogger(freq, sensors, maxruntime, calibrate)
     while True:
         if realtimegraph:
             # No reason importing QT messes if it's not needed
             from libraries.qt_helper import QTHelper
 
-            QTHelper(data_logger, calibration)
+            data_logger.start()
+            qt = QTHelper(data_logger, calibrate)
             data_logger.wait_for_datalogger()
-            data_logger.output_data()
+            qt.stop()
         else:
             data_logger.start()
-            data_logger.run()
             data_logger.wait_for_datalogger()
-            data_logger.output_data()
 
-        if onetrigger:
+        if not loop:
             break
 
-        data_logger.reset()
+    if calibrate:
+        print('Remove any test weights from the stand and press enter.')
+        maxruntime = 20  # seconds
+        data_logger = DataLogger(freq, sensors, maxruntime, calibrate)
+        data_logger.start()
+        data_logger.wait_for_datalogger()
 
-    if scaling_cal:
         test_data = data_logger.get_data()
 
         current_temp_F = input("Enter the current sensor temp (F): ")
@@ -117,22 +102,20 @@ def main(freq, maxruntime, batch_exp, debug, onetrigger, realtimegraph, opamp_ca
 
                 logging.info(f'Load cell calibration mass : {int(loadcell_max_newtons)} N')
 
-                # Get the min voltage for the sensor with no load on it, but throw out the initial and tail data
-                min_no_load = test_data[sensor['sensor_name']][2048:-1048].min()
+                # Get the min voltage for the sensor with no load on it, but throw out the initial and tail seconds
+                min_no_load = test_data[sensor['sensor_name']].iloc[freq:-freq].min()
                 current_load = 0
                 sensor['linear_adj'] = current_load - min_no_load
 
                 input('Place the test mass on the load cell and and push enter...')
 
                 data_logger.start()
-                data_logger.run()
                 data_logger.wait_for_datalogger()
-                data_logger.output_data()
 
                 test_data2 = data_logger.get_data()
 
-                # Get the mean voltage for the sensor with a load on it, but throw out the initial and tail data
-                mean_load = test_data2[sensor['sensor_name']][2048:-1024].mean()
+                # Get the mean voltage for the sensor with a load on it, but throw out the initial and tail seconds
+                mean_load = test_data2[sensor['sensor_name']].iloc[freq:-freq].mean()
 
                 logging.info(f'min_no_load: {min_no_load}')
                 logging.info(f'mean_load: {mean_load}')
@@ -145,8 +128,8 @@ def main(freq, maxruntime, batch_exp, debug, onetrigger, realtimegraph, opamp_ca
                 logging.info(f'New max value: {sensor["max"]}')
 
             if sensor['sensor_type'] == 'temp':
-                # Get the mean voltage for the sensor with a load on it, but throw out the initial and tail data
-                mean_measured_voltage = test_data[sensor['sensor_name']][2048:-1024].mean()
+                # Get the mean voltage for the sensor with a load on it, but throw out the initial and tail seconds
+                mean_measured_voltage = test_data[sensor['sensor_name']][freq:-freq].mean()
 
                 logging.info(f'mean_measured_temp: {mean_measured_voltage}')
 
@@ -156,8 +139,8 @@ def main(freq, maxruntime, batch_exp, debug, onetrigger, realtimegraph, opamp_ca
                 sensor['scalar_adj'] = 1
 
             if sensor['sensor_type'] == 'pressure':
-                # Get the mean voltage for the sensor with a load on it, but throw out the initial and tail data
-                mean_measured_pressure = test_data[sensor['sensor_name']][2048:-1024].mean()
+                # Get the mean voltage for the sensor with a load on it, but throw out the initial and tail seconds
+                mean_measured_pressure = test_data[sensor['sensor_name']][freq:-freq].mean()
 
                 logging.info(f'mean_measured_pressure: {mean_measured_pressure}')
 
@@ -170,8 +153,6 @@ def main(freq, maxruntime, batch_exp, debug, onetrigger, realtimegraph, opamp_ca
 
         if input('Do you want to write out these values (y/n)? ') == 'y':
             save_config(sensors, config)
-
-    data_logger.reset()
 
 
 if __name__ == '__main__':

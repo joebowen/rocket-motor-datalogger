@@ -49,15 +49,17 @@ def data_send_loop(add_data_callback_func):
 
 class QTHelper:
     def __init__(self, data_logger, calibration=False):
-        app = QApplication(sys.argv)
+        self.app = QApplication(sys.argv)
         QApplication.setStyle(QStyleFactory.create('Plastique'))
 
         data_logger.start(qt_queue)
-        data_logger.run()
 
-        CustomMainWindow(data_logger, calibration)
+        self.window = CustomMainWindow(data_logger, calibration)
 
-        sys.exit(app.exec_())
+        self.app.exec_()
+
+    def stop(self):
+        self.app.closeAllWindows()
 
 
 class CustomMainWindow(QMainWindow):
@@ -110,7 +112,6 @@ class CustomMainWindow(QMainWindow):
     def closeEvent(self, event):
         self.data_logger.stop()
         self.data_logger.wait_for_datalogger()
-        self.data_logger.output_data()
         event.accept()
 
 

@@ -4,6 +4,7 @@ import queue
 import threading
 
 import pandas as pd
+import numpy as np
 
 from usb1 import USBError
 from mccUSB import OverrunError as mccOverrunError
@@ -13,6 +14,14 @@ from matplotlib import pyplot as plt
 
 data_queue = queue.Queue(10)
 exit_flag = queue.Queue(1)
+
+
+def roundup(x, mod):
+    return x if x % mod == 0 else x + mod - x % mod
+
+
+def rounddown(x, mod):
+    return x if x % mod == 0 else (x + 1) - mod - (x + 1) % mod
 
 
 class ProducerThread(threading.Thread):
@@ -40,14 +49,14 @@ class ProducerThread(threading.Thread):
                             self.data_logger.stop()
 
                     except USBError as e:
-                        if e.value == -7:
+                        if e.value == -7 or e.value == -9 or e.value == -4:
                             # Normal, the device is probably waiting for a trigger
-                            logging.debug(f'USB Timeout occurred, probably waiting for trigger')
+                            logging.info(f'USB Timeout occurred, probably waiting for trigger')
                             time.sleep(random.random())
                         else:
                             raise
                     except mccOverrunError:
-                        self.data_logger.output_data()
+                        self.data_logger.output_to_csv()
                         self.data_logger.stop()
 
                     time.sleep(random.random())
@@ -71,7 +80,7 @@ class ConsumerThread(threading.Thread):
                     item = data_queue.get()
                     self.data_logger.process_data(item)
 
-                    if self.maxruntime and (self.data_logger.timestamp / 60) > self.maxruntime:
+                    if self.maxruntime and self.data_logger.timestamp > self.maxruntime:
                         self.data_logger.stop()
 
                 time.sleep(0.001)
@@ -81,12 +90,12 @@ class ConsumerThread(threading.Thread):
 
 
 class DataLogger:
-    def __init__(self, frequency, sensors, batch_exp=12, maxruntime=0, pdf_flag=False, calibration=False):
+    def __init__(self, frequency, sensors, maxruntime=0,  calibration=False):
         self.usb20x = usb_204()
 
         self.calibration = calibration
 
-        self.batch_exp = batch_exp
+        self.batch_exp = self._calc_batch_exp(frequency)
         self.sensors = sensors
 
         self.sensor_names = [None] * len(self.sensors)
@@ -97,13 +106,13 @@ class DataLogger:
 
         self.nchan = len(self.sensors)  # Number of channels to measure
         self.frequency = frequency
+        self.sample_time = 1 / frequency
 
         self.timestamp_label = datetime.now().strftime('%y-%b-%d_%H:%M:%S')
         self.restart_timestamp = perf_counter()
         self.timestamp = 0
         self.transfer_count = 0
         self.maxruntime = maxruntime
-        self.pdf_flag = pdf_flag
         self.qt_queue = None
 
         self.exit_flag = exit_flag
@@ -122,7 +131,19 @@ class DataLogger:
         else:
             self.options = self.usb20x.STALL_ON_OVERRUN
 
+    @staticmethod
+    def _calc_batch_exp(frequency):
+        for x in range(20):
+            if 2**x > frequency:
+                return x - 1
+
+        return 20
+
     def start(self, qt_queue=None):
+        self._reset()
+
+        logging.info('Starting USB_204')
+
         self.usb20x = usb_204()
 
         self.usb20x.AInScanStop()
@@ -135,7 +156,7 @@ class DataLogger:
         self.usb20x.AInScanStart(0, self.frequency * self.nchan, self.channels, self.options, self.usb20x.NO_TRIGGER, self.usb20x.LEVEL_HIGH)
 
         if self.maxruntime:
-            logging.info(f'Collecting data for {self.maxruntime:.2} minutes...')
+            logging.info(f'Collecting data for {self.maxruntime} seconds...')
         else:
             logging.info('Collecting data until green switch is turned off or code is exited...')
 
@@ -150,11 +171,6 @@ class DataLogger:
 
         # To write out the column headers
         self.output_to_csv(write_mode='w')
-
-        logging.info('Starting USB_204')
-
-    def run(self):
-        logging.info('Running data logging...')
 
         self.p = ProducerThread(
             name='producer',
@@ -195,7 +211,7 @@ class DataLogger:
                 for chan_index in range(self.nchan):
                     voltage.append(self.usb20x.volts(raw_data[(index * self.nchan) + chan_index]))
 
-                self.timestamp += (1 / self.frequency)
+                self.timestamp += self.sample_time
 
                 df_index.append(self.timestamp)
                 df_temp.append(voltage)
@@ -243,8 +259,10 @@ class DataLogger:
         logging.debug(f'Time since last restart minus recorded time: {int(time_since_restart - (self.timestamp))} seconds')
         logging.debug(f'Number of bulk transfers: {self.transfer_count}')
 
-    def reset(self):
+    def _reset(self):
         self.print_debug_info()
+
+        logging.info(f'Restarting USB_204...')
 
         while not data_queue.empty():
             data_queue.get()
@@ -259,7 +277,6 @@ class DataLogger:
 
         reset_in_progress = True
 
-        logging.info(f'Restarting USB_204...')
         while reset_in_progress:
             try:
                 self.usb20x = usb_204()
@@ -276,16 +293,14 @@ class DataLogger:
 
         if not exit_flag.full():
             exit_flag.put(True)
+
         self.usb20x.AInScanStop()
 
-    def output_data(self):
-        self.output_to_csv()
-
-        if self.pdf_flag:
-            self.output_to_pdf()
+        if not self.calibration:
+            self.output_final_results()
 
     def get_data(self):
-        df = pd.read_csv(f'output_data/{self.timestamp_label}/data.csv')
+        df = pd.read_csv(f'output_data/{self.timestamp_label}/raw_data.csv', index_col=0)
 
         return df
 
@@ -298,7 +313,7 @@ class DataLogger:
             header = True
 
         self.data.to_csv(
-            f'output_data/{self.timestamp_label}/data.csv',
+            f'output_data/{self.timestamp_label}/raw_data.csv',
             index_label='seconds',
             mode=write_mode,
             header=header,
@@ -308,8 +323,58 @@ class DataLogger:
         # Reset data to be appended next time
         self.data = pd.DataFrame(columns=self.sensor_names)
 
-    def output_to_pdf(self):
-        df = pd.read_csv(f'output_data/{self.timestamp_label}/data.csv')
+    def _detect_starting_timestamp(self, df):
+        # Discard the 1st second in case it's a 'dirty' signal
+        starting_min = df['Load Cell'].iloc[self.frequency:2 * self.frequency].min()
+
+        # Discard the 1st and last second in case it's a 'dirty' signal
+        test_max = df['Load Cell'].iloc[self.frequency:-self.frequency].max()
+
+        test_threshold = ((test_max - starting_min) * .10) + starting_min
+
+        start_timestamp = df.loc[df['Load Cell'] > test_threshold].iloc[0].name - 1
+
+        return start_timestamp
+
+    def _detect_ending_timestamp(self, df):
+        # Discard the last second in case it's a 'dirty' signal
+        ending_min = df['Load Cell'].iloc[self.frequency:-self.frequency].min()
+
+        # Discard the 1st and last second in case it's a 'dirty' signal
+        test_max = df['Load Cell'].iloc[self.frequency:-self.frequency].max()
+
+        test_threshold = ((test_max - ending_min) * .05) + ending_min
+
+        end_timestamp = df.loc[df['Load Cell'] > test_threshold].iloc[-1].name + 1
+
+        return end_timestamp
+
+    def _zero_load_cell(self, df):
+        # Discard the 1st second in case it's a 'dirty' signal
+        starting_min = df['Load Cell'].iloc[self.frequency:2 * self.frequency].min()
+
+        df['Load Cell'] = df['Load Cell'].apply(
+            lambda v, linear_adj: v - linear_adj,
+            linear_adj=starting_min
+        )
+
+        return df
+
+    def _clean_up_test_data(self, df):
+        start_timestamp = self._detect_starting_timestamp(df)
+        end_timestamp = self._detect_ending_timestamp(df)
+
+        df_zeroed = self._zero_load_cell(df)
+
+        df_reduced = df_zeroed.loc[df_zeroed.index > start_timestamp]
+        df_cleaned = df_reduced.loc[df_reduced.index < end_timestamp]
+
+        return df_cleaned
+
+    def output_final_results(self):
+        df = self.get_data()
+
+        df_clean = self._clean_up_test_data(df)
 
         for sensor_id, sensor in self.sensors.items():
             fig = plt.figure()
@@ -317,13 +382,35 @@ class DataLogger:
 
             subplot = fig.add_subplot(1, 1, 1)
 
-            subplot.plot(df[sensor['sensor_name']], linewidth=0.5)
+            subplot.plot(df_clean[sensor['sensor_name']], linewidth=0.5)
 
             subplot.set_xlabel('Seconds')
             subplot.set_ylabel(sensor['units'])
-            subplot.set_ylim([sensor['min'], sensor['max']])
+            subplot_max = roundup(df_clean[sensor['sensor_name']].max(), 10)
+            subplot_min = rounddown(df_clean[sensor['sensor_name']].min(), 10)
+
+            if pd.isnull(subplot_min):
+                subplot_min = sensor['min']
+
+            if pd.isnull(subplot_max):
+                subplot_max = sensor['max']
+
+            logging.debug(f'subplot_min: {subplot_min}')
+            logging.debug(f'subplot_max: {subplot_max}')
+
+            if sensor['sensor_name'] == 'Load Cell':
+                subplot_min = -1
+
+            subplot.set_ylim([subplot_min, subplot_max])
 
             fig.savefig(f'output_data/{self.timestamp_label}/{sensor["sensor_name"]}.pdf', dpi=1000, orientation='landscape', bbox_inches='tight')
 
-            del fig
+        plt.close('all')
 
+        df_clean.to_csv(
+            f'output_data/{self.timestamp_label}/processed_data.csv',
+            index_label='seconds',
+            mode='w',
+            header=True,
+            chunksize=10000
+        )
