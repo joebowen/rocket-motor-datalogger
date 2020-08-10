@@ -4,7 +4,6 @@ import queue
 import threading
 
 import pandas as pd
-import numpy as np
 
 from usb1 import USBError
 from mccUSB import OverrunError as mccOverrunError
@@ -45,18 +44,17 @@ class ProducerThread(threading.Thread):
                         logging.debug(f'Stop Flag: {stop_flag}')
 
                         if not stop_flag:
-                            logging.info('Stopping due to stop flag trigger going low...')
+                            logging.debug('Stopping due to stop flag trigger going low...')
                             self.data_logger.stop()
 
                     except USBError as e:
-                        if e.value == -7 or e.value == -9 or e.value == -4:
+                        if e.value == -7:  # or e.value == -9: # or e.value == -4:
                             # Normal, the device is probably waiting for a trigger
-                            logging.info(f'USB Timeout occurred, probably waiting for trigger')
+                            logging.debug(f'USB Timeout occurred, probably waiting for trigger')
                             time.sleep(random.random())
                         else:
                             raise
                     except mccOverrunError:
-                        self.data_logger.output_to_csv()
                         self.data_logger.stop()
 
                     time.sleep(random.random())
@@ -114,11 +112,14 @@ class DataLogger:
         self.transfer_count = 0
         self.maxruntime = maxruntime
         self.qt_queue = None
+        self.qt_exit_queue = None
 
         self.exit_flag = exit_flag
 
         self.p = None
         self.c = None
+
+        self.started = False
 
         self.data = pd.DataFrame(columns=self.sensor_names)
 
@@ -139,15 +140,10 @@ class DataLogger:
 
         return 20
 
-    def start(self, qt_queue=None):
+    def start(self, qt_queue=None, qt_exit_queue=None):
         self._reset()
 
         logging.info('Starting USB_204')
-
-        self.usb20x = usb_204()
-
-        self.usb20x.AInScanStop()
-        self.usb20x.AInScanClearFIFO()
 
         logging.info('Turn on the green switch when ready to start logging...')
         while not self.usb20x.DPort():
@@ -168,6 +164,7 @@ class DataLogger:
         self.data = pd.DataFrame(columns=self.sensor_names)
 
         self.qt_queue = qt_queue
+        self.qt_exit_queue = qt_exit_queue
 
         # To write out the column headers
         self.output_to_csv(write_mode='w')
@@ -191,6 +188,8 @@ class DataLogger:
         self.p.start()
         self.c.start()
 
+        self.started = True
+
     def wait_for_datalogger(self):
         try:
             self.c.join()
@@ -198,7 +197,9 @@ class DataLogger:
             self.stop()
 
     def collect_data(self):
-        raw_data = self.usb20x.AInScanRead(2**self.batch_exp)
+        raw_data = None
+        if self.usb20x.Status() == self.usb20x.AIN_SCAN_RUNNING:
+            raw_data = self.usb20x.AInScanRead(2**self.batch_exp)
 
         return raw_data
 
@@ -260,7 +261,13 @@ class DataLogger:
         logging.debug(f'Number of bulk transfers: {self.transfer_count}')
 
     def _reset(self):
+        if not exit_flag.full():
+            exit_flag.put(True)
+
         self.print_debug_info()
+
+        self.usb20x.AInScanStop()
+        self.usb20x.AInScanClearFIFO()
 
         logging.info(f'Restarting USB_204...')
 
@@ -281,6 +288,8 @@ class DataLogger:
             try:
                 self.usb20x = usb_204()
                 logging.debug(f'Status: {self.usb20x.Status()}')
+                self.usb20x.AInScanStop()
+                self.usb20x.AInScanClearFIFO()
                 reset_in_progress = False
             except:
                 time.sleep(sleep_delay)
@@ -289,15 +298,20 @@ class DataLogger:
                     raise
 
     def stop(self):
+        if not self.started:
+            return
+
+        self.started = False
+
         logging.info('Stopping logging')
+
+        if self.qt_exit_queue and not self.qt_exit_queue.full():
+            self.qt_exit_queue.put(True)
 
         if not exit_flag.full():
             exit_flag.put(True)
 
         self.usb20x.AInScanStop()
-
-        if not self.calibration:
-            self.output_final_results()
 
     def get_data(self):
         df = pd.read_csv(f'output_data/{self.timestamp_label}/raw_data.csv', index_col=0)
@@ -374,7 +388,11 @@ class DataLogger:
     def output_final_results(self):
         df = self.get_data()
 
-        df_clean = self._clean_up_test_data(df)
+        try:
+            df_clean = self._clean_up_test_data(df)
+        except:
+            logging.info('Unable to clean up data, using raw data instead.')
+            df_clean = df
 
         for sensor_id, sensor in self.sensors.items():
             fig = plt.figure()

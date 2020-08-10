@@ -433,7 +433,7 @@ class usb_20x(mccUSB):
         status = self.Status()
 
         if status & self.AIN_SCAN_OVERRUN:
-            print(f'AInScanRead: Overrun Error... status: {status}')
+            logging.debug(f'AInScanRead: Overrun Error... status: {status}')
             raise OverrunError
 
         nSamples = int(nScan * self.nChan)
@@ -557,7 +557,7 @@ class usb_20x(mccUSB):
 
             return result
         except:
-            print("MemoryR: controlRead error")
+            logging.debug("MemoryR: controlRead error")
 
     def CalMemoyrW(self, address, count, data):
         request_type = (HOST_TO_DEVICE | VENDOR_TYPE | DEVICE_RECIPIENT)
@@ -575,7 +575,7 @@ class usb_20x(mccUSB):
 
             return result
         except:
-            print("UserMemoryW: controlWrite error")
+            logging.debug("UserMemoryW: controlWrite error")
 
     def UserMemoryR(self, address, count):
         """
@@ -598,7 +598,7 @@ class usb_20x(mccUSB):
 
             return result
         except:
-            print("UserMemoryR: controlRead error")
+            logging.debug("UserMemoryR: controlRead error")
 
     def UserMemoyrW(self, address, data, count):
         request_type = (HOST_TO_DEVICE | VENDOR_TYPE | DEVICE_RECIPIENT)
@@ -616,7 +616,7 @@ class usb_20x(mccUSB):
 
             return result
         except:
-            print("UserMemoryW: controlWrite error")
+            logging.debug("UserMemoryW: controlWrite error")
 
     def MBDMemoryR(self, address, count):
         """
@@ -639,7 +639,7 @@ class usb_20x(mccUSB):
 
             return result
         except:
-            print("MBDMemoryR: controlRead error")
+            logging.debug("MBDMemoryR: controlRead error")
 
     def MBDMemoyrW(self, address, data, count):
         request_type = (HOST_TO_DEVICE | VENDOR_TYPE | DEVICE_RECIPIENT)
@@ -657,7 +657,7 @@ class usb_20x(mccUSB):
 
             return result
         except:
-            print("MBDMemoryW: controlWrite error")
+            logging.debug("MBDMemoryW: controlWrite error")
 
     #############################################
     #        Miscellaneous Commands             #

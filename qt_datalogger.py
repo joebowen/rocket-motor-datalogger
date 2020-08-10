@@ -1,7 +1,9 @@
 #!/usr/bin/python3
+
 import click
 import logging
 import json
+import sys
 
 from libraries.datalogging import DataLogger
 
@@ -43,14 +45,14 @@ def roundup(x, mod):
 
 
 @click.command()
-@click.option('--freq', type=int, default=1000, help='Data Logging Frequency - Default: 1000 Hz')
+@click.option('-f', '--freq', type=int, default=1000, help='Data Logging Frequency - Default: 1000 Hz')
+@click.option('-l', '--loop', is_flag=True, help='Continue capturing logs in a loop')
+@click.option('-g', '--graph', is_flag=True, help='Real time QT5 graph')
+@click.option('-c', '--calibrate', is_flag=True, help='Use this mode to calibrate the channels')
+@click.option('--config', type=str, default='sensors.json', help='Config file - Default: sensors.json')
 @click.option('--maxruntime', type=int, default=0, help='Maximum Run Time (seconds) - Default: 0 (for continuous)')
 @click.option('--debug', is_flag=True, help='Turn on debugging')
-@click.option('--loop', is_flag=True, help='Continue capturing logs in a loop')
-@click.option('--realtimegraph', is_flag=True, help='Real time QT5 graph')
-@click.option('--calibrate', is_flag=True, help='Use this mode to calibrate the channels')
-@click.option('--config', type=str, default='sensors.json', help='Config file - Default: sensors.json')
-def main(freq, maxruntime, debug, loop, realtimegraph, calibrate, config):
+def main(freq, loop, graph, calibrate, config, maxruntime, debug):
     if debug:
         logging.getLogger().setLevel(logging.DEBUG)
 
@@ -58,29 +60,30 @@ def main(freq, maxruntime, debug, loop, realtimegraph, calibrate, config):
 
     if calibrate:
         freq = 200
-        realtimegraph = True
+        graph = True
         loop = False
         maxruntime = 0
 
     data_logger = DataLogger(freq, sensors, maxruntime, calibrate)
     while True:
-        if realtimegraph:
+        if graph:
             # No reason importing QT messes if it's not needed
             from libraries.qt_helper import QTHelper
 
-            data_logger.start()
-            qt = QTHelper(data_logger, calibrate)
-            data_logger.wait_for_datalogger()
-            qt.stop()
+            QTHelper(data_logger, calibrate)
+            if not calibrate:
+                data_logger.output_final_results()
         else:
             data_logger.start()
             data_logger.wait_for_datalogger()
+            if not calibrate:
+                data_logger.output_final_results()
 
         if not loop:
             break
 
     if calibrate:
-        print('Remove any test weights from the stand and press enter.')
+        input('Remove any test weights from the stand and press enter.')
         maxruntime = 20  # seconds
         data_logger = DataLogger(freq, sensors, maxruntime, calibrate)
         data_logger.start()
@@ -153,6 +156,8 @@ def main(freq, maxruntime, debug, loop, realtimegraph, calibrate, config):
 
         if input('Do you want to write out these values (y/n)? ') == 'y':
             save_config(sensors, config)
+
+    sys.exit()
 
 
 if __name__ == '__main__':

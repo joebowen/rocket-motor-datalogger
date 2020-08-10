@@ -13,6 +13,7 @@ import numpy as np
 import matplotlib
 import queue
 import time
+import logging
 
 import pandas as pd
 
@@ -28,14 +29,15 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 matplotlib.use("Qt5Agg")
 
 qt_queue = queue.Queue(10)
+qt_exit_queue = queue.Queue(1)
 
 
-def data_send_loop(add_data_callback_func):
+def data_send_loop(add_data_callback_func, app):
     # Setup the signal-slot mechanism.
     pyqt_callback = Communicate()
     pyqt_callback.data_signal.connect(add_data_callback_func)
 
-    while True:
+    while qt_exit_queue.empty():
         for x in range(100):
             if not qt_queue.empty():
                 voltages = qt_queue.get()
@@ -46,26 +48,27 @@ def data_send_loop(add_data_callback_func):
 
         time.sleep(.01)
 
+    logging.debug('Stopping QT')
+    app.exit()
+
 
 class QTHelper:
     def __init__(self, data_logger, calibration=False):
-        self.app = QApplication(sys.argv)
+        app = QApplication(sys.argv)
         QApplication.setStyle(QStyleFactory.create('Plastique'))
 
-        data_logger.start(qt_queue)
+        data_logger.start(qt_queue, qt_exit_queue)
 
-        self.window = CustomMainWindow(data_logger, calibration)
+        self.window = CustomMainWindow(app, data_logger, calibration)
 
-        self.app.exec_()
-
-    def stop(self):
-        self.app.closeAllWindows()
+        app.exec_()
 
 
 class CustomMainWindow(QMainWindow):
-    def __init__(self, data_logger, calibration=False):
+    def __init__(self, app, data_logger, calibration=False):
         super(CustomMainWindow, self).__init__()
 
+        self.app = app
         self.sensors = data_logger.sensors
         self.data_logger = data_logger
 
@@ -97,7 +100,7 @@ class CustomMainWindow(QMainWindow):
             name='my_data_loop',
             target=data_send_loop,
             daemon=True,
-            args=(self.add_data_callback_func,)
+            args=(self.add_data_callback_func, app,)
         )
         my_data_loop.start()
         self.show()
@@ -110,8 +113,8 @@ class CustomMainWindow(QMainWindow):
                 self.myFigs[sensor_id].add_data(value)
 
     def closeEvent(self, event):
+        logging.debug('Stopping due to closing QT window...')
         self.data_logger.stop()
-        self.data_logger.wait_for_datalogger()
         event.accept()
 
 
