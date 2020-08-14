@@ -49,7 +49,7 @@ def data_send_loop(add_data_callback_func, app):
         time.sleep(.01)
 
     logging.debug('Stopping QT')
-    app.exit()
+    app.quit()
 
 
 class QTHelper:
@@ -59,7 +59,7 @@ class QTHelper:
 
         data_logger.start(qt_queue, qt_exit_queue)
 
-        self.window = CustomMainWindow(app, data_logger, calibration)
+        CustomMainWindow(app, data_logger, calibration)
 
         app.exec_()
 
@@ -68,7 +68,6 @@ class CustomMainWindow(QMainWindow):
     def __init__(self, app, data_logger, calibration=False):
         super(CustomMainWindow, self).__init__()
 
-        self.app = app
         self.sensors = data_logger.sensors
         self.data_logger = data_logger
 
@@ -121,6 +120,7 @@ class CustomMainWindow(QMainWindow):
 class CustomFigCanvas(FigureCanvas, TimedAnimation):
     def __init__(self, sensor_name, sensor_units, sensor_min, sensor_max, calibration, frequency):
         self.added_data = []
+        self.abc = 0
         # The data
         self.xlim = (2 * 60) * frequency  # Chart the past 2 minutes regardless of the frequency
         self.n = np.linspace(0, self.xlim - 1, self.xlim)
@@ -172,7 +172,7 @@ class CustomFigCanvas(FigureCanvas, TimedAnimation):
             TimedAnimation._step(self, *args)
         except Exception:
             self.abc += 1
-            print(str(self.abc))
+            # print(str(self.abc))
             TimedAnimation._stop(self)
             pass
 

@@ -2,11 +2,11 @@
     "channel0": {
         "channel": 0,
         "input": {},
-        "linear_adj": 6.611328125,
+        "linear_adj": 5.13671875,
         "max": 40.0,
         "min": 0,
         "opamp_mul": 1,
-        "scalar_adj": 5.669067703470432,
+        "scalar_adj": 1.6234569964401062,
         "sensor_name": "Load Cell",
         "sensor_type": "loadcell",
         "units": "Newtons"
