@@ -4,6 +4,7 @@ import queue
 import threading
 
 import pandas as pd
+from scipy import integrate
 
 from usb1 import USBError
 from mccUSB import OverrunError as mccOverrunError
@@ -122,6 +123,7 @@ class DataLogger:
         self.started = False
 
         self.data = pd.DataFrame(columns=self.sensor_names)
+        self.raw_data = pd.DataFrame(columns=self.sensor_names)
 
         self.channels = 0
         for i in range(self.nchan):
@@ -162,6 +164,7 @@ class DataLogger:
         self.transfer_count = 0
 
         self.data = pd.DataFrame(columns=self.sensor_names)
+        self.raw_data = pd.DataFrame(columns=self.sensor_names)
 
         self.qt_queue = qt_queue
         self.qt_exit_queue = qt_exit_queue
@@ -220,24 +223,24 @@ class DataLogger:
             logging.debug(f'Sample Voltages: {df_temp[0]}')
 
             temp_df = pd.DataFrame(df_temp, columns=self.sensor_names, index=df_index)
+            raw_temp_df = pd.DataFrame(df_temp, columns=self.sensor_names, index=df_index)
 
-            if not self.calibration:
-                for sensor_id, sensor in self.sensors.items():
-                    temp_df[sensor['sensor_name']] = temp_df[sensor['sensor_name']].apply(
-                        lambda v, linear_adj, opamp_mul: (v + linear_adj) / opamp_mul,
-                        linear_adj=sensor['linear_adj'],
-                        opamp_mul=sensor['opamp_mul']
-                    )
+            for sensor_id, sensor in self.sensors.items():
+                temp_df[sensor['sensor_name']] = temp_df[sensor['sensor_name']].apply(
+                    lambda v, linear_adj, opamp_mul: (v + linear_adj) / opamp_mul,
+                    linear_adj=sensor['linear_adj'],
+                    opamp_mul=sensor['opamp_mul']
+                )
 
-                    temp_df[sensor['sensor_name']] = temp_df[sensor['sensor_name']].apply(
-                        sensor['formula'],
-                        **sensor['input']
-                    )
+                temp_df[sensor['sensor_name']] = temp_df[sensor['sensor_name']].apply(
+                    sensor['formula'],
+                    **sensor['input']
+                )
 
-                    temp_df[sensor['sensor_name']] = temp_df[sensor['sensor_name']].apply(
-                        lambda v, scalar_adj: v * scalar_adj,
-                        scalar_adj=sensor['scalar_adj']
-                    )
+                temp_df[sensor['sensor_name']] = temp_df[sensor['sensor_name']].apply(
+                    lambda v, scalar_adj: v * scalar_adj,
+                    scalar_adj=sensor['scalar_adj']
+                )
 
             logging.debug(f'Sample transformed measurements:\n{temp_df.iloc[0]}')
 
@@ -245,6 +248,7 @@ class DataLogger:
                 self.qt_queue.put(temp_df)
 
             self.data = pd.concat([self.data, temp_df])
+            self.raw_data = pd.concat([self.raw_data, raw_temp_df])
 
             self.output_to_csv()
 
@@ -314,6 +318,11 @@ class DataLogger:
         self.usb20x.AInScanStop()
 
     def get_data(self):
+        df = pd.read_csv(f'output_data/{self.timestamp_label}/converted_data.csv', index_col=0)
+
+        return df
+
+    def get_raw_data(self):
         df = pd.read_csv(f'output_data/{self.timestamp_label}/raw_data.csv', index_col=0)
 
         return df
@@ -327,7 +336,7 @@ class DataLogger:
             header = True
 
         self.data.to_csv(
-            f'output_data/{self.timestamp_label}/raw_data.csv',
+            f'output_data/{self.timestamp_label}/converted_data.csv',
             index_label='seconds',
             mode=write_mode,
             header=header,
@@ -336,6 +345,17 @@ class DataLogger:
 
         # Reset data to be appended next time
         self.data = pd.DataFrame(columns=self.sensor_names)
+
+        self.raw_data.to_csv(
+            f'output_data/{self.timestamp_label}/raw_data.csv',
+            index_label='seconds',
+            mode=write_mode,
+            header=header,
+            chunksize=10000
+        )
+
+        # Reset raw_data to be appended next time
+        self.raw_data = pd.DataFrame(columns=self.sensor_names)
 
     def _detect_starting_timestamp(self, df):
         # Discard the 1st second in case it's a 'dirty' signal
@@ -346,7 +366,7 @@ class DataLogger:
 
         test_threshold = ((test_max - starting_min) * .10) + starting_min
 
-        start_timestamp = df.loc[df['Load Cell'] > test_threshold].iloc[0].name - 1
+        start_timestamp = df.loc[df['Load Cell'] > test_threshold].iloc[0].name
 
         return start_timestamp
 
@@ -359,7 +379,7 @@ class DataLogger:
 
         test_threshold = ((test_max - ending_min) * .05) + ending_min
 
-        end_timestamp = df.loc[df['Load Cell'] > test_threshold].iloc[-1].name + 1
+        end_timestamp = df.loc[df['Load Cell'] > test_threshold].iloc[-1].name
 
         return end_timestamp
 
@@ -375,8 +395,8 @@ class DataLogger:
         return df
 
     def _clean_up_test_data(self, df):
-        start_timestamp = self._detect_starting_timestamp(df)
-        end_timestamp = self._detect_ending_timestamp(df)
+        start_timestamp = self._detect_starting_timestamp(df) - 1
+        end_timestamp = self._detect_ending_timestamp(df) + 1
 
         df_zeroed = self._zero_load_cell(df)
 
@@ -385,14 +405,80 @@ class DataLogger:
 
         return df_cleaned
 
+    def _get_motor_impulse(self, df):
+        return integrate.trapz(df['Load Cell'], dx=self.sample_time)
+
+    @staticmethod
+    def _impulse_letter(impulse):
+        motor_codes = [
+            ('1/8A', 0.3125),
+            ('1/4A', 0.625),
+            ('1/2A', 1.25),
+            ('A', 2.5),
+            ('B', 5),
+            ('C', 10),
+            ('D', 20),
+            ('E', 40),
+            ('F', 80),
+            ('G', 160),
+            ('H', 320),
+            ('I', 640),
+            ('J', 1280),
+            ('K', 2560),
+            ('L', 5120),
+            ('M', 10240),
+            ('N', 20480),
+            ('O', 40960)
+        ]
+
+        motor_codes.reverse()
+
+        for index, (code, max_impulse) in enumerate(motor_codes):
+            if impulse > max_impulse:
+                return motor_codes[index - 1][0]
+
+        return '+P'
+
+    def _avg_thrust(self, df):
+        start_timestamp = self._detect_starting_timestamp(df)
+        end_timestamp = self._detect_ending_timestamp(df)
+
+        df_reduced = df.loc[df.index > start_timestamp]
+        df_cleaned = df_reduced.loc[df_reduced.index < end_timestamp]
+
+        return df_cleaned['Load Cell'].mean()
+
+    def _burn_time(self, df):
+        start_timestamp = self._detect_starting_timestamp(df)
+        end_timestamp = self._detect_ending_timestamp(df)
+
+        return end_timestamp - start_timestamp
+
     def output_final_results(self):
         df = self.get_data()
 
         try:
             df_clean = self._clean_up_test_data(df)
         except:
-            logging.info('Unable to clean up data, using raw data instead.')
+            logging.info('Unable to clean up data, using non-cleaned up data instead.')
             df_clean = df
+
+        impulse = self._get_motor_impulse(df_clean)
+        impulse_letter = self._impulse_letter(impulse)
+        average_thrust = self._avg_thrust(df)
+        burn_time = self._burn_time(df)
+
+        stats = f"""
+        Motor: {impulse_letter}{int(average_thrust)}  
+        Impulse: {impulse:.2f} Ns  
+        Average Thrust: {average_thrust:.2f} N  
+        Burn Time: {burn_time:.1f} s  
+        """
+
+        print(stats)
+
+        with open(f'output_data/{self.timestamp_label}/stats.txt', 'w') as f:
+            f.write(stats)
 
         for sensor_id, sensor in self.sensors.items():
             fig = plt.figure()
@@ -401,6 +487,9 @@ class DataLogger:
             subplot = fig.add_subplot(1, 1, 1)
 
             subplot.plot(df_clean[sensor['sensor_name']], linewidth=0.5)
+
+            if sensor['sensor_name'] == 'Load Cell':
+                fig.text(1, 1, stats, horizontalalignment='right', verticalalignment='top', transform=subplot.transAxes)
 
             subplot.set_xlabel('Seconds')
             subplot.set_ylabel(sensor['units'])

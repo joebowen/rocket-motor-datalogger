@@ -89,7 +89,7 @@ def main(freq, loop, graph, calibrate, config, maxruntime, debug):
         data_logger.start()
         data_logger.wait_for_datalogger()
 
-        test_data = data_logger.get_data()
+        test_data = data_logger.get_raw_data()
 
         current_temp_F = input("Enter the current sensor temp (F): ")
         current_temp_C = (float(current_temp_F) - 32) * (5 / 9)
