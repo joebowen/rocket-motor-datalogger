@@ -206,14 +206,14 @@ class DataLogger:
 
         return raw_data
 
-    def process_data(self, raw_data):
-        if raw_data and isinstance(raw_data, list):
+    def process_data(self, raw_input_data):
+        if raw_input_data and isinstance(raw_input_data, list):
             df_index = []
             df_temp = []
-            for index in range(int(len(raw_data) / self.nchan)):
+            for index in range(int(len(raw_input_data) / self.nchan)):
                 voltage = []
                 for chan_index in range(self.nchan):
-                    voltage.append(self.usb20x.volts(raw_data[(index * self.nchan) + chan_index]))
+                    voltage.append(self.usb20x.volts(raw_input_data[(index * self.nchan) + chan_index]))
 
                 self.timestamp += self.sample_time
 
@@ -245,7 +245,10 @@ class DataLogger:
             logging.debug(f'Sample transformed measurements:\n{temp_df.iloc[0]}')
 
             if self.qt_queue:
-                self.qt_queue.put(temp_df)
+                if self.calibration:
+                    self.qt_queue.put(raw_temp_df)
+                else:
+                    self.qt_queue.put(temp_df)
 
             self.data = pd.concat([self.data, temp_df])
             self.raw_data = pd.concat([self.raw_data, raw_temp_df])
@@ -254,7 +257,7 @@ class DataLogger:
 
         self.transfer_count += 1
 
-        logging.debug(f'{self.transfer_count}: Got {len(raw_data) / self.nchan} data points  -  Recorded time: {int(self.timestamp)} seconds')
+        logging.debug(f'{self.transfer_count}: Got {len(raw_input_data) / self.nchan} data points  -  Recorded time: {int(self.timestamp)} seconds')
 
     def print_debug_info(self):
         time_since_restart = perf_counter() - self.restart_timestamp

@@ -84,7 +84,7 @@ def main(freq, loop, graph, calibrate, config, maxruntime, debug):
 
     if calibrate:
         input('Remove any test weights from the stand and press enter.')
-        maxruntime = 20  # seconds
+        maxruntime = 10  # seconds
         data_logger = DataLogger(freq, sensors, maxruntime, calibrate)
         data_logger.start()
         data_logger.wait_for_datalogger()
