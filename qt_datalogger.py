@@ -115,7 +115,7 @@ def main(freq, loop, graph, calibrate, config, maxruntime, debug):
                 data_logger.start()
                 data_logger.wait_for_datalogger()
 
-                test_data2 = data_logger.get_data()
+                test_data2 = data_logger.get_raw_data()
 
                 # Get the mean voltage for the sensor with a load on it, but throw out the initial and tail seconds
                 mean_load = test_data2[sensor['sensor_name']].iloc[freq:-freq].mean()
