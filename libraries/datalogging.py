@@ -375,14 +375,19 @@ class DataLogger:
 
     def _detect_ending_timestamp(self, df):
         # Discard the last second in case it's a 'dirty' signal
-        ending_min = df['Load Cell'].iloc[self.frequency:-self.frequency].min()
+        ending_min = df['Load Cell'].iloc[-2 * self.frequency:-self.frequency].min()
 
         # Discard the 1st and last second in case it's a 'dirty' signal
         test_max = df['Load Cell'].iloc[self.frequency:-self.frequency].max()
 
         test_threshold = ((test_max - ending_min) * .05) + ending_min
 
-        end_timestamp = df.loc[df['Load Cell'] > test_threshold].iloc[-1].name
+        start_timestamp = self._detect_starting_timestamp(df)
+
+        reduced_df = df.loc[df.index > start_timestamp + .01]
+
+        # Discard the 1st and last second in case it's a 'dirty' signal
+        end_timestamp = reduced_df.loc[reduced_df['Load Cell'] < test_threshold].iloc[0].name
 
         return end_timestamp
 
@@ -405,6 +410,10 @@ class DataLogger:
 
         df_reduced = df_zeroed.loc[df_zeroed.index > start_timestamp]
         df_cleaned = df_reduced.loc[df_reduced.index < end_timestamp]
+
+        df_cleaned.index = df_cleaned.index.map(
+            lambda v: round(v - start_timestamp, 4)
+        )
 
         return df_cleaned
 
@@ -463,19 +472,24 @@ class DataLogger:
         try:
             df_clean = self._clean_up_test_data(df)
         except:
+            raise
             logging.info('Unable to clean up data, using non-cleaned up data instead.')
             df_clean = df
 
         impulse = self._get_motor_impulse(df_clean)
         impulse_letter = self._impulse_letter(impulse)
-        average_thrust = self._avg_thrust(df)
-        burn_time = self._burn_time(df)
+        average_thrust = self._avg_thrust(df_clean)
+        burn_time = self._burn_time(df_clean)
+        start_timestamp = self._detect_starting_timestamp(df_clean)
+        end_timestamp = self._detect_ending_timestamp(df_clean)
 
         stats = f"""
         Motor: {impulse_letter}{int(average_thrust)}  
         Impulse: {impulse:.2f} Ns  
         Average Thrust: {average_thrust:.2f} N  
         Burn Time: {burn_time:.1f} s  
+        Start Time: {start_timestamp:.1f} s  
+        End Time: {end_timestamp:.1f} s  
         """
 
         print(stats)
