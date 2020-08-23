@@ -132,7 +132,7 @@ def main(freq, loop, graph, calibrate, config, maxruntime, debug):
 
             if sensor['sensor_type'] == 'temp':
                 # Get the mean voltage for the sensor with a load on it, but throw out the initial and tail seconds
-                mean_measured_voltage = test_data[sensor['sensor_name']][freq:-freq].mean()
+                mean_measured_voltage = test_data[sensor['sensor_name']].iloc[freq:-freq].mean()
 
                 logging.info(f'mean_measured_temp: {mean_measured_voltage}')
 
@@ -143,7 +143,7 @@ def main(freq, loop, graph, calibrate, config, maxruntime, debug):
 
             if sensor['sensor_type'] == 'pressure':
                 # Get the mean voltage for the sensor with a load on it, but throw out the initial and tail seconds
-                mean_measured_pressure = test_data[sensor['sensor_name']][freq:-freq].mean()
+                mean_measured_pressure = test_data[sensor['sensor_name']].iloc[freq:-freq].mean()
 
                 logging.info(f'mean_measured_pressure: {mean_measured_pressure}')
 
