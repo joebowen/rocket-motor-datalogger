@@ -472,7 +472,6 @@ class DataLogger:
         try:
             df_clean = self._clean_up_test_data(df)
         except:
-            raise
             logging.info('Unable to clean up data, using non-cleaned up data instead.')
             df_clean = df
 
