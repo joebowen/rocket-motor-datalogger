@@ -527,9 +527,12 @@ class DataLogger:
             if sensor['sensor_name'] == 'Load Cell':
                 subplot_min = -1
 
+            if subplot_min == subplot_max:
+                subplot_max += 10
+
             subplot.set_ylim([subplot_min, subplot_max])
 
-            fig.savefig(f'output_data/{self.timestamp_label}/{sensor["sensor_name"]}.pdf', dpi=1000, orientation='landscape', bbox_inches='tight')
+            fig.savefig(f'output_data/{self.timestamp_label}/{sensor["sensor_name"]}.pdf', dpi=2000, orientation='landscape', bbox_inches='tight')
 
         plt.close('all')
 

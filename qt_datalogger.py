@@ -46,13 +46,13 @@ def roundup(x, mod):
 
 @click.command()
 @click.option('-f', '--freq', type=int, default=1000, help='Data Logging Frequency - Default: 1000 Hz')
-@click.option('-l', '--loop', is_flag=True, help='Continue capturing logs in a loop')
+@click.option('-l', '--no_loop', is_flag=True, help='Disable capturing logs in a loop')
 @click.option('-g', '--graph', is_flag=True, help='Real time QT5 graph')
 @click.option('-c', '--calibrate', is_flag=True, help='Use this mode to calibrate the channels')
 @click.option('--config', type=str, default='sensors.json', help='Config file - Default: sensors.json')
 @click.option('--maxruntime', type=int, default=0, help='Maximum Run Time (seconds) - Default: 0 (for continuous)')
 @click.option('--debug', is_flag=True, help='Turn on debugging')
-def main(freq, loop, graph, calibrate, config, maxruntime, debug):
+def main(freq, no_loop, graph, calibrate, config, maxruntime, debug):
     if debug:
         logging.getLogger().setLevel(logging.DEBUG)
 
@@ -61,7 +61,7 @@ def main(freq, loop, graph, calibrate, config, maxruntime, debug):
     if calibrate:
         freq = 200
         graph = True
-        loop = False
+        no_loop = True
         maxruntime = 0
 
     data_logger = DataLogger(freq, sensors, maxruntime, calibrate)
@@ -79,7 +79,7 @@ def main(freq, loop, graph, calibrate, config, maxruntime, debug):
             if not calibrate:
                 data_logger.output_final_results()
 
-        if not loop:
+        if no_loop:
             break
 
     if calibrate:
