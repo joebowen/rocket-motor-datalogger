@@ -294,16 +294,8 @@ class DataLogger:
             while not self.qt_queue.empty():
                 self.qt_queue.get()
 
-        try:
-            self.usb20x.AInScanStop()
-            self.usb20x.AInScanClearFIFO()
-        except USBError as e:
-            if e.value == -4:  # or e.value == -9:
-                # Normal, the device is probably waiting for a trigger
-                logging.debug(f'USB Timeout or device not found occurred')
-                time.sleep(random.random())
-            else:
-                raise
+        self.usb20x.AInScanStop()
+        self.usb20x.AInScanClearFIFO()
 
         self._reset_usb204()
 
