@@ -405,8 +405,8 @@ class DataLogger:
         return df
 
     def _clean_up_test_data(self, df):
-        start_timestamp = self._detect_starting_timestamp(df) - 1
-        end_timestamp = self._detect_ending_timestamp(df) + 1
+        start_timestamp = self._detect_starting_timestamp(df) - 5
+        end_timestamp = self._detect_ending_timestamp(df) + 5
 
         df_zeroed = self._zero_load_cell(df)
 
