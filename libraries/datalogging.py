@@ -49,7 +49,7 @@ class ProducerThread(threading.Thread):
                             self.data_logger.stop()
 
                     except USBError as e:
-                        if e.value == -7:  # or e.value == -9: # or e.value == -4:
+                        if e.value == -7 or e.value == -4:  # or e.value == -9:
                             # Normal, the device is probably waiting for a trigger
                             logging.debug(f'USB Timeout occurred, probably waiting for trigger')
                             time.sleep(random.random())
