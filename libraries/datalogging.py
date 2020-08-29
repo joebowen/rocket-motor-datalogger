@@ -389,8 +389,7 @@ class DataLogger:
 
         reduced_df = df.loc[df.index > start_timestamp + .01]
 
-        # Discard the 1st and last second in case it's a 'dirty' signal
-        end_timestamp = reduced_df.loc[reduced_df['Load Cell'] < test_threshold].iloc[0].name
+        end_timestamp = reduced_df.loc[reduced_df['Load Cell'] > test_threshold].iloc[-1].name
 
         return end_timestamp
 
@@ -532,7 +531,7 @@ class DataLogger:
 
             subplot.set_ylim([subplot_min, subplot_max])
 
-            fig.savefig(f'output_data/{self.timestamp_label}/{sensor["sensor_name"]}.pdf', dpi=2000, orientation='landscape', bbox_inches='tight')
+            fig.savefig(f'output_data/{self.timestamp_label}/{sensor["sensor_name"]}.pdf', dpi=5000, orientation='landscape', bbox_inches='tight')
 
         plt.close('all')
 
