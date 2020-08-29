@@ -271,6 +271,7 @@ class DataLogger:
         try:
             logging.info(f'Restarting USB_204...')
 
+            self.usb20x = usb_204()
             self.usb20x.Reset()
         except USBError as e:
             if e.value == -4:  # or e.value == -9:
