@@ -285,7 +285,16 @@ class DataLogger:
             while not self.qt_queue.empty():
                 self.qt_queue.get()
 
-        self.usb20x.Reset()
+        try:
+            self.usb20x.Reset()
+        except USBError as e:
+            if e.value == -7 or e.value == -4:  # or e.value == -9:
+                # Normal, the device is probably waiting for a trigger
+                logging.debug(f'USB Timeout occurred, probably waiting for trigger')
+                time.sleep(random.random())
+                self._reset()
+            else:
+                raise
 
         sleep_delay = .1
 
