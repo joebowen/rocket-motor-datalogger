@@ -275,7 +275,7 @@ class DataLogger:
         except USBError as e:
             if e.value == -7 or e.value == -4:  # or e.value == -9:
                 # Normal, the device is probably waiting for a trigger
-                logging.debug(f'USB Timeout occurred, probably waiting for trigger')
+                logging.debug(f'USB Timeout or device not found occurred')
                 time.sleep(random.random())
                 return self._reset_usb204()
             else:
