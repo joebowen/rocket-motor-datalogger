@@ -267,21 +267,6 @@ class DataLogger:
         logging.debug(f'Time since last restart minus recorded time: {int(time_since_restart - (self.timestamp))} seconds')
         logging.debug(f'Number of bulk transfers: {self.transfer_count}')
 
-    def _reset_usb204(self):
-        try:
-            logging.info(f'Restarting USB_204...')
-
-            self.usb20x = usb_204()
-            self.usb20x.Reset()
-        except USBError as e:
-            if e.value == -4:  # or e.value == -9:
-                # Normal, the device is probably waiting for a trigger
-                logging.debug(f'USB device not found occurred')
-                time.sleep(random.random())
-                return self._reset_usb204()
-            else:
-                raise
-
     def _reset(self):
         if not exit_flag.full():
             exit_flag.put(True)
@@ -298,7 +283,9 @@ class DataLogger:
         self.usb20x.AInScanStop()
         self.usb20x.AInScanClearFIFO()
 
-        self._reset_usb204()
+        logging.info(f'Restarting USB_204...')
+
+        self.usb20x.Reset()
 
         sleep_delay = .1
 
