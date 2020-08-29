@@ -285,7 +285,10 @@ class DataLogger:
 
         logging.info(f'Restarting USB_204...')
 
-        self.usb20x.Reset()
+        try:
+            self.usb20x.Reset()
+        except:
+            pass
 
         sleep_delay = .1
 
