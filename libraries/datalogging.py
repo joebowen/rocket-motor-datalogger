@@ -12,7 +12,7 @@ from mccUSB import OverrunError as mccOverrunError
 from usb_20x import *
 from matplotlib import pyplot as plt
 
-data_queue = queue.Queue(10)
+data_queue = queue.Queue(50)
 exit_flag = queue.Queue(1)
 
 
@@ -51,7 +51,7 @@ class ProducerThread(threading.Thread):
                     except USBError as e:
                         if e.value == -7 or e.value == -4:  # or e.value == -9:
                             # Normal, the device is probably waiting for a trigger
-                            logging.debug(f'USB Timeout occurred, probably waiting for trigger')
+                            logging.info(f'USB Timeout occurred, probably waiting for trigger')
                             time.sleep(random.random())
                         else:
                             raise
@@ -138,7 +138,7 @@ class DataLogger:
     def _calc_batch_exp(frequency):
         for x in range(20):
             if 2**x > frequency:
-                return x - 1
+                return x
 
         return 20
 
@@ -203,6 +203,11 @@ class DataLogger:
         raw_data = None
         if self.usb20x.Status() == self.usb20x.AIN_SCAN_RUNNING:
             raw_data = self.usb20x.AInScanRead(2**self.batch_exp)
+        elif self.usb20x.Status() == self.usb20x.AIN_SCAN_RUNNING + self.usb20x.AIN_SCAN_OVERRUN:
+            logging.info('Scan Overrun.  Forced to reset (cross fingers and hope timing is ok)!!!')
+            self._reset()
+        else:
+            logging.info(f'Not running... Status: {self.usb20x.Status()}')
 
         return raw_data
 
@@ -372,7 +377,10 @@ class DataLogger:
 
         test_threshold = ((test_max - starting_min) * .10) + starting_min
 
-        start_timestamp = df.loc[df['Load Cell'] > test_threshold].iloc[0].name
+        try:
+            start_timestamp = df.loc[df['Load Cell'] > test_threshold].iloc[0].name
+        except IndexError:
+            start_timestamp = df.iloc[0].name
 
         return start_timestamp
 
@@ -389,7 +397,10 @@ class DataLogger:
 
         reduced_df = df.loc[df.index > start_timestamp + .01]
 
-        end_timestamp = reduced_df.loc[reduced_df['Load Cell'] > test_threshold].iloc[-1].name
+        try:
+            end_timestamp = reduced_df.loc[reduced_df['Load Cell'] > test_threshold].iloc[-1].name
+        except IndexError:
+            end_timestamp = df.iloc[-1].name
 
         return end_timestamp
 
@@ -471,11 +482,7 @@ class DataLogger:
     def output_final_results(self):
         df = self.get_data()
 
-        try:
-            df_clean = self._clean_up_test_data(df)
-        except:
-            logging.info('Unable to clean up data, using non-cleaned up data instead.')
-            df_clean = df
+        df_clean = self._clean_up_test_data(df)
 
         impulse = self._get_motor_impulse(df_clean)
         impulse_letter = self._impulse_letter(impulse)
