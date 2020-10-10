@@ -80,6 +80,9 @@ class CustomMainWindow(QMainWindow):
         self.LAYOUT_A = QGridLayout()
         self.FRAME_A.setLayout(self.LAYOUT_A)
         self.setCentralWidget(self.FRAME_A)
+
+        self.stackedGraphs = QStackedWidget()
+
         # Place the matplotlib figure
         self.myFigs = dict()
         for index, sensor_name in enumerate(self.sensors.keys()):
@@ -92,7 +95,24 @@ class CustomMainWindow(QMainWindow):
                 data_logger.frequency
             )
 
-            self.LAYOUT_A.addWidget(self.myFigs[sensor_name], *(index, 1))
+            self.stackedGraphs.addWidget(self.myFigs[sensor_name])
+
+        self.LAYOUT_A.addWidget(self.stackedGraphs, *(0, 0, 1, 3))
+
+        self.sensor_index = 0
+        self.stackedGraphs.setCurrentIndex(self.sensor_index)
+
+        self.prev_button = QPushButton("PREV")
+        self.prev_button.clicked.connect(self.prev_button_callback)
+        self.LAYOUT_A.addWidget(self.prev_button, *(1, 0))
+
+        self.next_button = QPushButton("NEXT")
+        self.next_button.clicked.connect(self.next_button_callback)
+        self.LAYOUT_A.addWidget(self.next_button, *(1, 2))
+
+        self.done_button = QPushButton("DONE")
+        self.done_button.clicked.connect(self.done_button_callback)
+        self.LAYOUT_A.addWidget(self.done_button, *(1, 1))
 
         # Add the callbackfunc to ..
         my_data_loop = threading.Thread(
@@ -103,6 +123,22 @@ class CustomMainWindow(QMainWindow):
         )
         my_data_loop.start()
         self.show()
+
+    def prev_button_callback(self):
+        sensor_index = self.stackedGraphs.currentIndex()
+
+        if sensor_index != 0:
+            self.stackedGraphs.setCurrentIndex(sensor_index - 1)
+
+    def next_button_callback(self):
+        sensor_index = self.stackedGraphs.currentIndex()
+
+        if sensor_index != len(self.sensors) - 1:
+            self.stackedGraphs.setCurrentIndex(sensor_index + 1)
+
+    def done_button_callback(self):
+        logging.debug('Stopping due to clicking Done button...')
+        self.data_logger.stop()
 
     def add_data_callback_func(self, df):
         for sensor_id, sensor in self.sensors.items():
