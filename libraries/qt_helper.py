@@ -72,7 +72,16 @@ class CustomMainWindow(QMainWindow):
         self.data_logger = data_logger
 
         # Define the geometry of the main window
-        self.setGeometry(0, 0, 3000, 2000)
+        titleBarHeight = self.style().pixelMetric(
+            QStyle.PM_TitleBarHeight,
+            QStyleOptionTitleBar(),
+            self
+        )
+
+        geometry = app.desktop().availableGeometry()
+        geometry.setHeight(geometry.height() - (titleBarHeight * 2))
+        self.setGeometry(geometry)
+
         self.setWindowTitle("Load Cell Test")
         # Create FRAME_A
         self.FRAME_A = QFrame(self)
