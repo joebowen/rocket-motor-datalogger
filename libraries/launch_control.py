@@ -4,7 +4,7 @@ from libraries.gpio import GPIO
 from libraries.comms import Comms
 
 
-class LaunchControl():
+class LaunchControl:
     def __init__(self):
         self.relays = GPIO()
 
