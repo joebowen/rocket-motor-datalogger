@@ -53,19 +53,19 @@ def data_send_loop(add_data_callback_func, app):
 
 
 class QTHelper:
-    def __init__(self, data_logger, calibration=False):
+    def __init__(self, data_logger, raw_voltage=False):
         app = QApplication(sys.argv)
         QApplication.setStyle(QStyleFactory.create('Plastique'))
 
         data_logger.start(qt_queue, qt_exit_queue)
 
-        CustomMainWindow(app, data_logger, calibration)
+        CustomMainWindow(app, data_logger, raw_voltage)
 
         app.exec_()
 
 
 class CustomMainWindow(QMainWindow):
-    def __init__(self, app, data_logger, calibration=False):
+    def __init__(self, app, data_logger, raw_voltage=False):
         super(CustomMainWindow, self).__init__()
 
         self.sensors = data_logger.sensors
@@ -93,7 +93,7 @@ class CustomMainWindow(QMainWindow):
                 self.sensors[sensor_name]['units'],
                 self.sensors[sensor_name]['min'],
                 self.sensors[sensor_name]['max'],
-                calibration,
+                raw_voltage,
                 data_logger.frequency
             )
 
@@ -156,7 +156,7 @@ class CustomMainWindow(QMainWindow):
 
 
 class CustomFigCanvas(FigureCanvas, TimedAnimation):
-    def __init__(self, sensor_name, sensor_units, sensor_min, sensor_max, calibration, frequency):
+    def __init__(self, sensor_name, sensor_units, sensor_min, sensor_max, raw_voltage, frequency):
         self.added_data = []
         self.abc = 0
         # The data
@@ -177,7 +177,7 @@ class CustomFigCanvas(FigureCanvas, TimedAnimation):
         self.ax1.add_line(self.line1_head)
         self.ax1.set_xlim(0, self.xlim - 1)
 
-        if calibration:
+        if raw_voltage:
             self.ax1.set_ylim(-12, 12)
             self.ax1.set_ylabel('V')
             self.ax1.yaxis.set_label_position("right")

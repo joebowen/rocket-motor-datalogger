@@ -89,10 +89,10 @@ class ConsumerThread(threading.Thread):
 
 
 class DataLogger:
-    def __init__(self, frequency, sensors, maxruntime=0,  calibration=False):
+    def __init__(self, frequency, sensors, maxruntime=0,  raw_voltage=False):
         self.usb20x = usb_204()
 
-        self.calibration = calibration
+        self.raw_voltage = raw_voltage
 
         self.batch_exp = self._calc_batch_exp(frequency)
         self.sensors = sensors
@@ -250,7 +250,7 @@ class DataLogger:
             logging.debug(f'Sample transformed measurements:\n{temp_df.iloc[0]}')
 
             if self.qt_queue:
-                if self.calibration:
+                if self.raw_voltage:
                     self.qt_queue.put(raw_temp_df)
                 else:
                     self.qt_queue.put(temp_df)
