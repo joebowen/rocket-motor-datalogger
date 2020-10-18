@@ -19,5 +19,5 @@ class GPIO:
         self.relays[index].off()
 
     def all_relays_off(self):
-        for name, relay in enumerate(self.relays):
+        for name, relay in self.relays.items():
             relay.off()
