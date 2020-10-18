@@ -9,8 +9,27 @@ from libraries.datalogging import DataLogger
 from libraries.qt_helper import QTHelper
 from libraries.launch_control import LaunchControl
 
+
+class StreamToLogger(object):
+    """ Fake file-like stream object that redirects writes to a logger instance.
+    """
+
+    def __init__(self, logger, log_level=logging.INFO):
+        self.logger = logger
+        self.log_level = log_level
+        self.linebuf = ''
+
+    def write(self, buf):
+        for line in buf.rstrip().splitlines():
+            self.logger.log(self.log_level, line.rstrip())
+
+
 logging.basicConfig(level=logging.INFO,
-                    format='(%(threadName)-9s) %(message)s',)
+                    format='(%(threadName)-9s) %(message)s', )
+
+stdout_logger = logging.getLogger('STDOUT')
+sl = StreamToLogger(stdout_logger, logging.INFO)
+sys.stdout = sl
 
 logging.getLogger('matplotlib').setLevel(logging.WARNING)
 
@@ -35,7 +54,7 @@ def load_config(config_file_name='sensors.json'):
 def save_config(sensors, config_file_name='sensors.json'):
     for sensor_id, sensor in sensors.items():
         if 'formula' in sensor:
-            del(sensor['formula'])
+            del (sensor['formula'])
 
     with open(config_file_name, mode='w') as config_file:
         json.dump(sensors, config_file, indent=4, sort_keys=True)
