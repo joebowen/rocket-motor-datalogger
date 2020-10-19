@@ -136,8 +136,7 @@ def calibrate_mode(sensors, config, freq):
         logging.info(f'New linear_adj value: {sensor["linear_adj"]}')
         logging.info(f'New scalar_adj value: {sensor["scalar_adj"]}')
 
-    if input('Do you want to write out these values (y/n)? ') == 'y':
-        save_config(sensors, config)
+    save_config(sensors, config)
 
 
 @click.command()
