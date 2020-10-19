@@ -148,8 +148,6 @@ def main(freq, calibrate, config, debug):
     if debug:
         logging.getLogger().setLevel(logging.DEBUG)
 
-    no_loop = False
-
     sensors = load_config(config)
 
     if calibrate:
@@ -160,17 +158,15 @@ def main(freq, calibrate, config, debug):
 
     lc = LaunchControl()
 
-    lc.ready()
-
-    data_logger = DataLogger(frequency=freq, sensors=sensors, maxruntime=0, raw_voltage=False)
     while True:
-        QTHelper(data_logger, raw_voltage=False)
+        lc.wait_for_ready()
+
+        data_logger = DataLogger(frequency=freq, sensors=sensors, maxruntime=0, raw_voltage=False)
+        data_logger.start()
+        data_logger.wait_for_datalogger()
         data_logger.output_final_results()
 
-        if no_loop:
-            break
-
-    sys.exit()
+        lc.wait_for_safe()
 
 
 if __name__ == '__main__':

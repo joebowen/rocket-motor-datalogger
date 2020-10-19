@@ -22,6 +22,20 @@ class LaunchControl:
         except:
             self.comms = None
 
+    def wait_for_ready(self):
+        if self.comms:
+            while self.current_state != 'ready':
+                time.sleep(1)
+
+        self.ready()
+
+    def wait_for_safe(self):
+        if self.comms:
+            while self.current_state != 'safe':
+                time.sleep(1)
+
+        self.safe()
+
     def ready(self, args=None):
         self.current_state = 'ready'
         self.relays.relay_on('warn_lights')
