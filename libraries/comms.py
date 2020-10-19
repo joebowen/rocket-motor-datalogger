@@ -35,12 +35,18 @@ class Comms:
     def parse_message(self, message):
         message_json = json.loads(message)
 
+        print(f'message_json: {message_json}')
+
         if message_json['remoteid'] == self.remoteid:
             message_command = message_json['command']
+
+            print(f'message_command: {message_command}')
 
             if message_command in self.message_types:
                 message_args = None
                 if 'args' in message_json:
                     message_args = message_json['args']
+
+                print(f'Executing: {self.message_types[message_command]}')
 
                 self.message_types[message_command](message_args)

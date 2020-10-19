@@ -7,8 +7,8 @@ from libraries.comms import Comms
 class LaunchControl:
     def __init__(self):
         self.relays = GPIO()
+        self.relays.all_relays_off()
         self.current_state = 'safe'
-        self.safe()
 
         message_types = {
             'ready': self.ready,
