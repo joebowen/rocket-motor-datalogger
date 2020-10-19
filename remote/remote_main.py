@@ -4,7 +4,7 @@ import click
 import logging
 import time
 
-from remote.libraries.launch_control import LaunchControl
+from libraries.launch_control import LaunchControl
 
 
 @click.command()
@@ -14,6 +14,8 @@ def main(debug):
         logging.getLogger().setLevel(logging.DEBUG)
 
     lc = LaunchControl()
+
+    input('Press enter when ready...')
 
     lc.send_ready()
     time.sleep(10)

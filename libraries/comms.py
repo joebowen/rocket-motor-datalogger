@@ -1,5 +1,6 @@
 import meshtastic
 import json
+import time
 
 from pubsub import pub
 
@@ -10,8 +11,20 @@ class Comms:
         self.remoteid = remoteid
 
         pub.subscribe(self.on_receive, 'meshtastic.receive')
+        pub.subscribe(self.on_connection, "meshtastic.connection.established")
+
+        self.connected = False
 
         self.interface = meshtastic.SerialInterface()
+
+    def wait_till_connected(self):
+        while not self.connected:
+            time.sleep(1)
+
+        print('Meshtastic comms successfully connected')
+
+    def on_connection(self):
+        self.connected = True
 
     def on_receive(self, packet, interface):  # called when a packet arrives
         print(f'Received: {packet}')

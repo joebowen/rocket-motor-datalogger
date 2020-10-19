@@ -1,13 +1,12 @@
-import time
 import random
 
-from remote.libraries.gpio import GPIO
-from remote.libraries.comms import Comms
+from libraries.gpio import GPIO
+from libraries.comms import Comms
 
 
 class LaunchControl:
     def __init__(self):
-        self.gpio = GPIO()
+        # self.gpio = GPIO()
         self.current_state = 'safe'
         self.receive_safe()
 
@@ -22,6 +21,8 @@ class LaunchControl:
         print(f'remote id: {remoteid}')
 
         self.comms = Comms(message_types, remoteid=remoteid)
+
+        self.comms.wait_till_connected()
 
     def wait_for_ready(self):
         print(f'Waiting for the ready switch to be turned on.')
