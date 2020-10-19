@@ -30,3 +30,6 @@ class GPIO:
 
     def wait_for_button(self, button_name):
         self.buttons[button_name].wait_for_active()
+
+    def wait_for_button_release(self, button_name):
+        self.buttons[button_name].wait_for_inactive()

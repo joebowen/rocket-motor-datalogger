@@ -34,14 +34,17 @@ class LaunchControl:
         self.safe()
 
     def ready(self, args=None):
+        print('Received ready signal')
         self.current_state = 'ready'
         self.relays.relay_on('warn_lights')
 
     def safe(self, args=None):
+        print('Received safe signal')
         self.current_state = 'safe'
         self.relays.all_relays_off()
 
     def launch(self, args=None):
+        print('Received launch signal')
         if self.current_state == 'ready':
             self.current_state = 'ignition'
             self.relays.relay_on('ignition')

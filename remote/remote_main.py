@@ -2,6 +2,7 @@
 
 import click
 import logging
+import time
 
 from remote.libraries.launch_control import LaunchControl
 
@@ -13,6 +14,12 @@ def main(debug):
         logging.getLogger().setLevel(logging.DEBUG)
 
     lc = LaunchControl()
+
+    lc.send_ready()
+    time.sleep(10)
+    lc.send_launch()
+    time.sleep(10)
+    lc.send_safe()
 
 
 if __name__ == '__main__':

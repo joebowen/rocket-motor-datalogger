@@ -9,12 +9,12 @@ class LaunchControl:
     def __init__(self):
         self.gpio = GPIO()
         self.current_state = 'safe'
-        self.safe()
+        self.receive_safe()
 
         message_types = {
-            'ready': self.ready,
-            'safe': self.safe,
-            'launch': self.launch
+            'ready': self.receive_ready,
+            'safe': self.receive_safe,
+            'launch': self.receive_launch
         }
 
         remoteid = random.randint(0, 100000)
@@ -27,25 +27,34 @@ class LaunchControl:
         print(f'Waiting for the ready switch to be turned on.')
         self.gpio.wait_for_button('ready')
 
+        self.send_ready()
+
+    def send_ready(self):
+        self.comms.send_message(command='ready')
+
     def wait_for_safe(self):
-        if self.comms:
-            while self.current_state != 'safe':
-                time.sleep(1)
+        print(f'Waiting for the ready switch to be turned off.')
+        self.gpio.wait_for_button_release('ready')
 
-        self.safe()
+        self.send_safe()
 
-    def ready(self, args=None):
-        self.current_state = 'ready'
-        self.gpio.relay_on('warn_lights')
+    def send_safe(self):
+        self.comms.send_message(command='safe')
 
-    def safe(self, args=None):
-        self.current_state = 'safe'
-        self.gpio.all_relays_off()
+    def wait_for_launch(self):
+        print(f'Waiting for the launch switch to be pushed.')
+        self.gpio.wait_for_button_release('launch')
 
-    def launch(self, args=None):
-        if self.current_state == 'ready':
-            self.current_state = 'ignition'
-            self.gpio.relay_on('ignition')
-            time.sleep(30)
-            self.gpio.relay_off('ignition')
-            self.current_state = 'post-ignition'
+        self.send_launch()
+
+    def send_launch(self):
+        self.comms.send_message(command='launch')
+
+    def receive_ready(self, args=None):
+        print('Received ready signal')
+
+    def receive_safe(self, args=None):
+        print('Received safe signal')
+
+    def receive_launch(self, args=None):
+        print('Received launch signal')
