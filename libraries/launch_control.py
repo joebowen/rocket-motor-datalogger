@@ -17,7 +17,10 @@ class LaunchControl:
         }
 
         remoteid = input("Enter the remote id shown on the launch controller: ")
-        self.comms = Comms(message_types, remoteid)
+        try:
+            self.comms = Comms(message_types, remoteid)
+        except:
+            self.comms = None
 
     def ready(self, args=None):
         self.current_state = 'ready'
@@ -29,6 +32,8 @@ class LaunchControl:
 
     def launch(self, args=None):
         if self.current_state == 'ready':
+            self.current_state = 'ignition'
             self.relays.relay_on('ignition')
             time.sleep(30)
             self.relays.relay_off('ignition')
+            self.current_state = 'post-ignition'
