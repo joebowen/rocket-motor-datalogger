@@ -17,6 +17,9 @@ class Comms:
 
         self.interface = meshtastic.SerialInterface()
 
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.interface.close()
+
     def wait_till_connected(self):
         while not self.connected:
             time.sleep(1)

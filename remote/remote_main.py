@@ -18,7 +18,9 @@ def main(debug):
     input('Press enter when ready...')
 
     lc.send_ready()
-    time.sleep(10)
+
+    input('Press enter to launch...')
+
     lc.send_launch()
     time.sleep(10)
     lc.send_safe()
