@@ -17,13 +17,14 @@ class LaunchControl:
             'launch': self.launch
         }
 
-        remoteid = random.randint(0, 1000)
+        remoteid = random.randint(0, 100000)
 
         print(f'remote id: {remoteid}')
 
         self.comms = Comms(message_types, remoteid=remoteid)
 
     def wait_for_ready(self):
+        print(f'Waiting for the ready switch to be turned on.')
         self.gpio.wait_for_button('ready')
 
     def wait_for_safe(self):
@@ -35,16 +36,16 @@ class LaunchControl:
 
     def ready(self, args=None):
         self.current_state = 'ready'
-        self.relays.relay_on('warn_lights')
+        self.gpio.relay_on('warn_lights')
 
     def safe(self, args=None):
         self.current_state = 'safe'
-        self.relays.all_relays_off()
+        self.gpio.all_relays_off()
 
     def launch(self, args=None):
         if self.current_state == 'ready':
             self.current_state = 'ignition'
-            self.relays.relay_on('ignition')
+            self.gpio.relay_on('ignition')
             time.sleep(30)
-            self.relays.relay_off('ignition')
+            self.gpio.relay_off('ignition')
             self.current_state = 'post-ignition'

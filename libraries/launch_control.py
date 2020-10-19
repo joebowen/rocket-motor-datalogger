@@ -20,12 +20,14 @@ class LaunchControl:
         self.comms = Comms(message_types, remoteid)
 
     def wait_for_ready(self):
+        print('Waiting for the ready command to be sent.')
         while self.current_state != 'ready':
             time.sleep(1)
 
         self.ready()
 
     def wait_for_safe(self):
+        print('Waiting for the safe command to be sent.')
         while self.current_state != 'safe':
             time.sleep(1)
 
