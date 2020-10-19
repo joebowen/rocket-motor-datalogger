@@ -2,7 +2,6 @@
 
 import click
 import logging
-import random
 
 from remote.libraries.launch_control import LaunchControl
 
