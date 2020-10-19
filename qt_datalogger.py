@@ -159,7 +159,9 @@ def main(freq, calibrate, config, debug):
         QTHelper(data_logger, raw_voltage=True)
         calibrate_mode(sensors, config, freq)
 
-    LaunchControl()
+    lc = LaunchControl()
+
+    lc.ready()
 
     data_logger = DataLogger(frequency=freq, sensors=sensors, maxruntime=0, raw_voltage=False)
     while True:
