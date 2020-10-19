@@ -1,12 +1,13 @@
 import time
+import random
 
-from libraries.gpio import GPIO
-from libraries.comms import Comms
+from remote.libraries.gpio import GPIO
+from remote.libraries.comms import Comms
 
 
 class LaunchControl:
     def __init__(self):
-        self.relays = GPIO()
+        self.gpio = GPIO()
         self.current_state = 'safe'
         self.safe()
 
@@ -16,18 +17,19 @@ class LaunchControl:
             'launch': self.launch
         }
 
-        remoteid = input("Enter the remote id shown on the launch controller: ")
-        self.comms = Comms(message_types, remoteid)
+        remoteid = random.randint(0, 1000)
+
+        print(f'remote id: {remoteid}')
+
+        self.comms = Comms(message_types, remoteid=remoteid)
 
     def wait_for_ready(self):
-        while self.current_state != 'ready':
-            time.sleep(1)
-
-        self.ready()
+        self.gpio.wait_for_button('ready')
 
     def wait_for_safe(self):
-        while self.current_state != 'safe':
-            time.sleep(1)
+        if self.comms:
+            while self.current_state != 'safe':
+                time.sleep(1)
 
         self.safe()
 

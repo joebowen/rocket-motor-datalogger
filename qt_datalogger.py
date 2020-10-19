@@ -24,8 +24,7 @@ class StreamToLogger(object):
             self.logger.log(self.log_level, line.rstrip())
 
 
-logging.basicConfig(level=logging.INFO,
-                    format='(%(threadName)-9s) %(message)s', )
+logging.basicConfig(level=logging.INFO, format='(%(threadName)-9s) %(message)s', )
 
 stdout_logger = logging.getLogger('STDOUT')
 sl = StreamToLogger(stdout_logger, logging.INFO)
