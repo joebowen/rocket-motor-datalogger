@@ -6,7 +6,6 @@ import json
 import sys
 
 from libraries.datalogging import DataLogger
-from libraries.qt_helper import QTHelper
 from libraries.launch_control import LaunchControl
 
 
@@ -153,6 +152,8 @@ def main(freq, calibrate, config, debug):
     sensors = load_config(config)
 
     if calibrate:
+        from libraries.qt_helper import QTHelper  # No need to import this if it's not required
+
         freq = 200
         data_logger = DataLogger(frequency=freq, sensors=sensors, maxruntime=0, raw_voltage=True)
         QTHelper(data_logger, raw_voltage=True)
