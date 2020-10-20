@@ -26,7 +26,7 @@ class Comms:
 
         print('Meshtastic comms successfully connected')
 
-    def on_connection(self):
+    def on_connection(self, interface, topic=pub.AUTO_TOPIC):
         self.connected = True
 
     def on_receive(self, packet, interface):  # called when a packet arrives
