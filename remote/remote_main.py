@@ -3,6 +3,7 @@
 import click
 import logging
 import time
+import sys
 
 from libraries.launch_control import LaunchControl
 
@@ -24,6 +25,8 @@ def main(debug):
     lc.send_launch()
     time.sleep(10)
     lc.send_safe()
+
+    sys.exit()
 
 
 if __name__ == '__main__':

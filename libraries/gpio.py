@@ -5,7 +5,7 @@ class GPIO:
     def __init__(self):
         self.relays = {
             'dump_solenoid': LED(21),
-            'ignitor': LED(20),
+            'ignition': LED(20),
             'fill_solenoid': LED(16),
             'warn_lights': LED(12)
         }
