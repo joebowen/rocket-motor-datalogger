@@ -16,7 +16,7 @@ class LaunchControl:
             'launch': self.launch
         }
 
-        remoteid = input("Enter the remote id shown on the launch controller: ")
+        remoteid = int(input("Enter the remote id shown on the launch controller: "))
         self.comms = Comms(message_types, remoteid)
 
         self.comms.wait_till_connected()
