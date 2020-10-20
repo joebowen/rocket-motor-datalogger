@@ -16,7 +16,7 @@ class LaunchControl:
             'launch': self.receive_launch
         }
 
-        remoteid = random.randint(0, 100000)
+        remoteid = random.randint(0, 10)
 
         print(f'remote id: {remoteid}')
 

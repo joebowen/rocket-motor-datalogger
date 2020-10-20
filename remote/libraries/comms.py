@@ -32,8 +32,8 @@ class Comms:
     def on_receive(self, packet, interface):  # called when a packet arrives
         print(f'Received: {packet}')
 
-        if 'data' in packet and 'text' in packet['data']:
-            self.parse_message(packet['data']['text'])
+        if 'decoded' in packet and 'data' in packet['decoded'] and 'text' in packet['decoded']['data']:
+            self.parse_message(packet['decoded']['data']['text'])
 
     def send_message(self, command, args=None):
         message = {
