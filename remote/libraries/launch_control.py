@@ -22,8 +22,6 @@ class LaunchControl:
 
         self.comms = Comms(message_types, remoteid=remoteid)
 
-        self.comms.wait_till_connected()
-
     def wait_for_ready(self):
         print(f'Waiting for the ready switch to be turned on.')
         self.gpio.wait_for_button('ready')
