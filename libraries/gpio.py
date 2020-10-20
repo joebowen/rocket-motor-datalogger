@@ -4,9 +4,9 @@ from gpiozero import LED
 class GPIO:
     def __init__(self):
         self.relays = {
+            'fill_solenoid': LED(20),
             'dump_solenoid': LED(21),
-            'ignition': LED(20),
-            'fill_solenoid': LED(16),
+            'ignition': LED(16),
             'warn_lights': LED(12)
         }
 
