@@ -4,6 +4,10 @@ import click
 import logging
 import time
 import sys
+import libraries.LCD_1in44 as LCD_1in44
+import libraries.LCD_Config as LCD_Config
+
+from PIL import Image, ImageDraw, ImageFont, ImageColor
 
 from libraries.launch_control import LaunchControl
 
@@ -38,18 +42,29 @@ def main(debug):
     if debug:
         logging.getLogger().setLevel(logging.DEBUG)
 
+    LCD = LCD_1in44.LCD()
+
+    print
+    "**********Init LCD**********"
+    Lcd_ScanDir = LCD_1in44.SCAN_DIR_DFT  # SCAN_DIR_DFT = D2U_L2R
+    LCD.LCD_Init(Lcd_ScanDir)
+    LCD.LCD_Clear()
+
+    image = Image.new("RGB", (LCD.width, LCD.height), "WHITE")
+    draw = ImageDraw.Draw(image)
+
     lc = LaunchControl()
 
-    input('Press enter when ready...')
-    lc.send_ready()
+    while True:
+        input('Press enter when ready...')
+        draw.text((33, 22), 'READY', fill="BLUE")
+        lc.send_ready()
 
-    input('Press enter to launch...')
-    lc.send_launch()
+        input('Press enter to launch...')
+        draw.text((33, 22), 'SET', fill="BLUE")
+        lc.send_launch()
 
-    input('Press enter to safe...')
-    lc.send_safe()
-
-    sys.exit()
+        draw.text((33, 22), 'LAUNCH', fill="BLUE")
 
 
 if __name__ == '__main__':

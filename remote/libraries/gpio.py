@@ -4,15 +4,13 @@ from gpiozero import LED, Button
 class GPIO:
     def __init__(self):
         self.relays = {
-            'fill_solenoid': LED(20, active_high=False),
-            'dump_solenoid': LED(21, active_high=False),
-            'ignition': LED(16, active_high=False),
-            'warn_lights': LED(12, active_high=False)
+            'ready_led': LED(5),
+            'launch_led': LED(6)
         }
 
         self.buttons = {
-            'ready': Button(1),
-            'launch': Button(2)
+            'ready': Button(2),
+            'launch': Button(3)
         }
 
     def relay_off(self, relay_name):
@@ -26,7 +24,7 @@ class GPIO:
             self.relay_off(name)
 
     def is_button_on(self, button_name):
-        return self.buttons[button_name].is_active()
+        return self.buttons[button_name].is_active
 
     def wait_for_button(self, button_name):
         self.buttons[button_name].wait_for_active()

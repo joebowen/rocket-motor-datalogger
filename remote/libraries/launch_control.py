@@ -6,8 +6,7 @@ from libraries.comms import Comms
 
 class LaunchControl:
     def __init__(self):
-        # self.gpio = GPIO()
-        self.current_state = 'safe'
+        self.gpio = GPIO()
         self.receive_safe()
 
         message_types = {
@@ -42,7 +41,10 @@ class LaunchControl:
 
     def wait_for_launch(self):
         print(f'Waiting for the launch switch to be pushed.')
-        self.gpio.wait_for_button_release('launch')
+        while not self.gpio.is_button_on('launch'):
+            if not self.gpio.is_button_on('ready'):
+                self.send_safe()
+                return
 
         self.send_launch()
 
