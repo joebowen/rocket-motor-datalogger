@@ -20,13 +20,12 @@ def main(debug):
     lc = LaunchControl()
 
     input('Press enter when ready...')
-
     lc.send_ready()
 
     input('Press enter to launch...')
-
     lc.send_launch()
-    time.sleep(10)
+
+    input('Press enter to safe...')
     lc.send_safe()
 
     sys.exit()

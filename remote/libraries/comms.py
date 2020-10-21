@@ -16,7 +16,7 @@ class Comms:
 
         self.connected = False
 
-        self.interface = meshtastic.SerialInterface()
+        self.interface = meshtastic.SerialInterface(devPath='/dev/ttyUSB0')
 
         self.wait_till_connected()
 
