@@ -11,10 +11,10 @@ class GPIO:
         }
 
     def relay_off(self, index):
-        self.relays[index].on()  # Cause "on" is "off" in this case...
+        self.relays[index].off()
 
     def relay_on(self, index):
-        self.relays[index].off()  # Cause "on" is "off" in this case...
+        self.relays[index].on()
 
     def all_relays_off(self):
         for name in self.relays.keys():
