@@ -8,6 +8,9 @@ import sys
 from libraries.launch_control import LaunchControl
 
 
+logging.basicConfig(level=logging.INFO, format='(%(threadName)-9s) %(message)s', )
+
+
 @click.command()
 @click.option('-d', '--debug', is_flag=True, help='Turn on debugging')
 def main(debug):

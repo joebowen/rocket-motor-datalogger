@@ -4,10 +4,10 @@ from gpiozero import LED, Button
 class GPIO:
     def __init__(self):
         self.relays = {
-            'fill_solenoid': LED(20),
-            'dump_solenoid': LED(21),
-            'ignition': LED(16),
-            'warn_lights': LED(12)
+            'fill_solenoid': LED(20, active_high=False),
+            'dump_solenoid': LED(21, active_high=False),
+            'ignition': LED(16, active_high=False),
+            'warn_lights': LED(12, active_high=False)
         }
 
         self.buttons = {
