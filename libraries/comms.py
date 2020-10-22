@@ -9,7 +9,6 @@ from pubsub import pub
 class Comms:
     def __init__(self, message_types, remoteid=None):
         self.message_types = message_types
-        self.remoteid = remoteid
 
         pub.subscribe(self.on_receive, 'meshtastic.receive')
         pub.subscribe(self.on_connection, "meshtastic.connection.established")
@@ -19,6 +18,8 @@ class Comms:
         self.interface = meshtastic.SerialInterface(devPath='/dev/ttyUSB0')
 
         self.wait_till_connected()
+
+        self.remoteid = int(input("Enter the remote id shown on the launch controller: "))
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.interface.close()

@@ -71,8 +71,8 @@ def main(debug):
         LCD.LCD_ShowImage(image, 0, 0)
         draw.rectangle([(0, 0), (LCD.width, LCD.height)], fill='WHITE')
 
-        print('Launch...')
         if lc.wait_for_launch():
+            print('Launch...')
             LCD.LCD_ShowImage(image, 0, 0)
             draw.rectangle([(0, 0), (LCD.width, LCD.height)], fill='WHITE')
 
