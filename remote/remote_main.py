@@ -56,15 +56,17 @@ def main(debug):
     lc = LaunchControl()
 
     while True:
-        input('Press enter when ready...')
+        print('Ready...')
         draw.text((33, 22), 'READY', fill="BLUE")
-        lc.send_ready()
+        lc.wait_for_ready()
 
-        input('Press enter to launch...')
+        print('Launch...')
         draw.text((33, 22), 'SET', fill="BLUE")
-        lc.send_launch()
+        lc.wait_for_launch()
 
         draw.text((33, 22), 'LAUNCH', fill="BLUE")
+
+        lc.send_safe()
 
 
 if __name__ == '__main__':
