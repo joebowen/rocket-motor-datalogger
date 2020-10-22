@@ -23,7 +23,8 @@ class Comms:
 
         self.interface.radioConfig.preferences.is_low_power = False
         self.interface.radioConfig.preferences.is_router = True
-        self.interface.radioConfig.channel_settings.modem_config = 1
+        self.interface.radioConfig.preferences.min_wake_secs = 1
+        self.interface.radioConfig.channel_settings.modem_config = 3
         self.interface.writeConfig()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
