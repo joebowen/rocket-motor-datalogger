@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import click
+import random
 import logging
 import time
 import sys
@@ -43,9 +44,6 @@ def main(debug):
         logging.getLogger().setLevel(logging.DEBUG)
 
     LCD = LCD_1in44.LCD()
-
-    print
-    "**********Init LCD**********"
     Lcd_ScanDir = LCD_1in44.SCAN_DIR_DFT  # SCAN_DIR_DFT = D2U_L2R
     LCD.LCD_Init(Lcd_ScanDir)
     LCD.LCD_Clear()
@@ -53,18 +51,28 @@ def main(debug):
     image = Image.new("RGB", (LCD.width, LCD.height), "WHITE")
     draw = ImageDraw.Draw(image)
 
-    lc = LaunchControl()
+    remoteid = random.randint(0, 10)
+    print(f'remote id: {remoteid}')
+    draw.text((33, 22), f'REMOTE ID\n{remoteid}', fill="BLUE")
+    LCD.LCD_ShowImage(image, 0, 0)
+    draw.rectangle([(0, 0), (LCD.width, LCD.height)], fill="WHITE")
+
+    lc = LaunchControl(remoteid)
 
     while True:
         print('Ready...')
         draw.text((33, 22), 'READY', fill="BLUE")
         lc.wait_for_ready()
+        LCD.LCD_ShowImage(image, 0, 0)
+        draw.rectangle([(0, 0), (LCD.width, LCD.height)], fill="WHITE")
 
         print('Launch...')
         draw.text((33, 22), 'SET', fill="BLUE")
-        lc.wait_for_launch()
+        if lc.wait_for_launch():
+            LCD.LCD_ShowImage(image, 0, 0)
+            draw.rectangle([(0, 0), (LCD.width, LCD.height)], fill="WHITE")
 
-        draw.text((33, 22), 'LAUNCH', fill="BLUE")
+            draw.text((33, 22), 'LAUNCH', fill="BLUE")
 
         lc.send_safe()
 

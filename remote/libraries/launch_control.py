@@ -1,11 +1,9 @@
-import random
-
 from libraries.gpio import GPIO
 from libraries.comms import Comms
 
 
 class LaunchControl:
-    def __init__(self):
+    def __init__(self, remoteid):
         self.gpio = GPIO()
         self.receive_safe()
 
@@ -14,10 +12,6 @@ class LaunchControl:
             'safe': self.receive_safe,
             'launch': self.receive_launch
         }
-
-        remoteid = random.randint(0, 10)
-
-        print(f'remote id: {remoteid}')
 
         self.comms = Comms(message_types, remoteid=remoteid)
 
@@ -43,10 +37,11 @@ class LaunchControl:
         print(f'Waiting for the launch switch to be pushed.')
         while not self.gpio.is_button_on('launch'):
             if not self.gpio.is_button_on('ready'):
-                self.send_safe()
-                return
+                return False
 
         self.send_launch()
+
+        self.gpio.wait_for_button_release('launch')
 
     def send_launch(self):
         self.comms.send_message(command='launch')
