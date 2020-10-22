@@ -14,8 +14,8 @@ from libraries.launch_control import LaunchControl
 
 
 class StreamToLogger(object):
-    """ Fake file-like stream object that redirects writes to a logger instance.
-    """
+    ''' Fake file-like stream object that redirects writes to a logger instance.
+    '''
 
     def __init__(self, logger, log_level=logging.INFO):
         self.logger = logger
@@ -48,31 +48,35 @@ def main(debug):
     LCD.LCD_Init(Lcd_ScanDir)
     LCD.LCD_Clear()
 
-    image = Image.new("RGB", (LCD.width, LCD.height), "WHITE")
+    image = Image.new('RGB', (LCD.width, LCD.height), 'WHITE')
     draw = ImageDraw.Draw(image)
 
     remoteid = random.randint(0, 10)
     print(f'remote id: {remoteid}')
-    draw.text((33, 22), f'REMOTE ID\n{remoteid}', fill="BLUE")
+    draw.text((33, 22), f'REMOTE ID\n{remoteid}', fill='BLUE')
     LCD.LCD_ShowImage(image, 0, 0)
-    draw.rectangle([(0, 0), (LCD.width, LCD.height)], fill="WHITE")
+    draw.rectangle([(0, 0), (LCD.width, LCD.height)], fill='WHITE')
 
     lc = LaunchControl(remoteid)
 
     while True:
-        print('Ready...')
-        draw.text((33, 22), 'READY', fill="BLUE")
-        lc.wait_for_ready()
+        print('Safe...')
+        draw.text((33, 22), 'SAFE', fill='BLUE')
         LCD.LCD_ShowImage(image, 0, 0)
-        draw.rectangle([(0, 0), (LCD.width, LCD.height)], fill="WHITE")
+        draw.rectangle([(0, 0), (LCD.width, LCD.height)], fill='WHITE')
+
+        lc.wait_for_ready()
+        print('Ready...')
+        draw.text((33, 22), 'READY', fill='BLUE')
+        LCD.LCD_ShowImage(image, 0, 0)
+        draw.rectangle([(0, 0), (LCD.width, LCD.height)], fill='WHITE')
 
         print('Launch...')
-        draw.text((33, 22), 'SET', fill="BLUE")
         if lc.wait_for_launch():
             LCD.LCD_ShowImage(image, 0, 0)
-            draw.rectangle([(0, 0), (LCD.width, LCD.height)], fill="WHITE")
+            draw.rectangle([(0, 0), (LCD.width, LCD.height)], fill='WHITE')
 
-            draw.text((33, 22), 'LAUNCH', fill="BLUE")
+            draw.text((33, 22), 'LAUNCH!!!', fill='BLUE')
 
         lc.send_safe()
 
