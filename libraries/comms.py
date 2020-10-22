@@ -18,10 +18,10 @@ class Comms:
 
         self.interface = meshtastic.SerialInterface(devPath='/dev/ttyUSB0')
 
+        self.wait_till_connected()
+
         self.interface.radioConfig.preferences.is_low_power = False
         self.interface.radioConfig.preferences.is_router = True
-
-        self.wait_till_connected()
 
         self.remoteid = int(input("Enter the remote id shown on the launch controller: "))
 
