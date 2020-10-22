@@ -22,7 +22,7 @@ class Comms:
 
         self.interface.radioConfig.preferences.is_low_power = False
         self.interface.radioConfig.preferences.is_router = True
-        self.interface.radioConfig.channel_settings.modem_config = 3
+        self.interface.radioConfig.channel_settings.modem_config = 2
         self.interface.writeConfig()
 
         self.remoteid = int(input("Enter the remote id shown on the launch controller: "))
