@@ -7,7 +7,7 @@ from pubsub import pub
 
 
 class Comms:
-    def __init__(self, message_types, remoteid=None):
+    def __init__(self, message_types):
         self.message_types = message_types
 
         pub.subscribe(self.on_receive, 'meshtastic.receive')
@@ -23,6 +23,7 @@ class Comms:
         self.interface.radioConfig.preferences.is_low_power = False
         self.interface.radioConfig.preferences.is_router = True
         self.interface.radioConfig.channel_settings.modem_config = 1
+        self.interface.writeConfig()
 
         self.remoteid = int(input("Enter the remote id shown on the launch controller: "))
 
