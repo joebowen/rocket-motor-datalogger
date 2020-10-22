@@ -24,7 +24,7 @@ class Comms:
         self.interface.radioConfig.preferences.is_router = True
         self.interface.radioConfig.preferences.min_wake_secs = 300
         self.interface.radioConfig.preferences.wait_bluetooth_secs = 1
-        self.interface.radioConfig.channel_settings.modem_config = 1
+        self.interface.radioConfig.channel_settings.modem_config = 2
         self.interface.writeConfig()
 
         self.remoteid = int(input("Enter the remote id shown on the launch controller: "))
