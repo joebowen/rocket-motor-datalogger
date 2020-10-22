@@ -22,7 +22,7 @@ class LaunchControl:
         self.send_ready()
 
     def send_ready(self):
-        self.comms.send_message(command='ready')
+        self.comms.send_message(command='ready', wait_for_ack=True)
 
     def wait_for_safe(self):
         print(f'Waiting for the ready switch to be turned off.')
@@ -44,7 +44,9 @@ class LaunchControl:
         self.gpio.wait_for_button_release('launch')
 
     def send_launch(self):
-        self.comms.send_message(command='launch')
+        self.comms.send_message(command='launch', wait_for_ack=True)
+
+        self.comms.wait_till_connected()
 
     def receive_ready(self, args=None):
         print('Received ready signal')

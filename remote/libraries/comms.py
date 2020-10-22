@@ -15,6 +15,7 @@ class Comms:
         pub.subscribe(self.on_connection, "meshtastic.connection.established")
 
         self.connected = False
+        self.success_ids = []
 
         self.interface = meshtastic.SerialInterface(devPath='/dev/ttyUSB0')
 
@@ -32,13 +33,20 @@ class Comms:
     def on_connection(self, interface, topic=pub.AUTO_TOPIC):
         self.connected = True
 
+    def wait_for_ack(self, message_id):
+        while message_id not in self.success_ids:
+            time.sleep(0.001)
+
     def on_receive(self, packet, interface):  # called when a packet arrives
         logging.debug(f'Received: {packet}')
+
+        if 'decoded' in packet and 'successId' in packet['decoded']:
+            self.success_ids.append(packet['decoded']['successId'])
 
         if 'decoded' in packet and 'data' in packet['decoded'] and 'text' in packet['decoded']['data']:
             self.parse_message(packet['decoded']['data']['text'])
 
-    def send_message(self, command, args=None):
+    def send_message(self, command, args=None, wait_for_ack=False):
         message = {
             'remoteid': self.remoteid,
             'command': command
@@ -52,6 +60,9 @@ class Comms:
             wantAck=True,
             wantResponse=True
         ).id
+
+        if wait_for_ack:
+            self.wait_for_ack(message_id)
 
         return message_id
 
