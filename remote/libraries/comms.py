@@ -47,13 +47,19 @@ class Comms:
         if args:
             message['args'] = args
 
-        self.interface.sendText(
+        message_id = self.interface.sendText(
             text=json.dumps(message),
-            wantAck=True
-        )
+            wantAck=True,
+            wantResponse=True
+        ).id
+
+        return message_id
 
     def parse_message(self, message):
-        message_json = json.loads(message)
+        try:
+            message_json = json.loads(message)
+        except json.decoder.JSONDecodeError:
+            return False
 
         logging.info(f'message_json: {message_json}')
 

@@ -40,7 +40,10 @@ class Comms:
             self.parse_message(packet['decoded']['data']['text'])
 
     def parse_message(self, message):
-        message_json = json.loads(message)
+        try:
+            message_json = json.loads(message)
+        except json.decoder.JSONDecodeError:
+            return False
 
         logging.info(f'message_json: {message_json}')
 
