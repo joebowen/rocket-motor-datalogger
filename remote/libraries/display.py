@@ -11,7 +11,7 @@ class Display:
         self.LCD.LCD_Init(Lcd_ScanDir)
         self.LCD.LCD_Clear()
 
-        font_path = "fonts/ArchivoBlack.ttf"
+        font_path = "fonts/FreeMonoBold.ttf"
         font_size = 16
         self.font = ImageFont.truetype(font_path, font_size)
 
@@ -24,7 +24,7 @@ class Display:
         self.refresh_display()
 
     def add_remote_id(self):
-        self.draw.text((10, 10), f'REMOTE ID - {self.remote_id}', fill='BLUE', font=self.font)
+        self.draw.text((10, 10), f'ID - {self.remote_id}', fill='BLUE', font=self.font)
 
         self.refresh_display()
 
