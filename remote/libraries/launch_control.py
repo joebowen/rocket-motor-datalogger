@@ -3,7 +3,7 @@ from libraries.comms import Comms
 
 
 class LaunchControl:
-    def __init__(self, remoteid):
+    def __init__(self, remoteid, disp):
         self.gpio = GPIO()
         self.receive_safe()
 
@@ -13,7 +13,7 @@ class LaunchControl:
             'launch': self.receive_launch
         }
 
-        self.comms = Comms(message_types, remoteid=remoteid)
+        self.comms = Comms(message_types, remoteid=remoteid, display=disp)
 
     def wait_for_ready(self):
         print(f'Waiting for the ready switch to be turned on.')

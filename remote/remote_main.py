@@ -40,12 +40,12 @@ def main(debug):
     if debug:
         logging.getLogger().setLevel(logging.DEBUG)
 
-    remoteid = random.randint(0, 10000)
+    remoteid = random.randint(0, 9999)
     print(f'remote id: {remoteid}')
 
     disp = Display(remoteid)
 
-    lc = LaunchControl(remoteid)
+    lc = LaunchControl(remoteid, disp)
 
     while True:
         print('Safe...')

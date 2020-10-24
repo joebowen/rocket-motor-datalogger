@@ -13,7 +13,7 @@ class Display:
 
         font_path = "fonts/FreeMonoBold.ttf"
         self.small_font = ImageFont.truetype(font_path, 20)
-        self.large_font = ImageFont.truetype(font_path, 40)
+        self.large_font = ImageFont.truetype(font_path, 35)
 
         self.remote_id = remote_id
 

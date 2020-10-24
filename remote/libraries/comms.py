@@ -7,9 +7,10 @@ from pubsub import pub
 
 
 class Comms:
-    def __init__(self, message_types, remoteid=None):
+    def __init__(self, message_types, remoteid=None, display=None):
         self.message_types = message_types
         self.remoteid = remoteid
+        self.display = display
 
         pub.subscribe(self.on_receive, 'meshtastic.receive')
         pub.subscribe(self.on_connection, "meshtastic.connection.established")
@@ -41,8 +42,19 @@ class Comms:
         self.connected = True
 
     def wait_for_ack(self, message_id):
+        message = [
+            '.',
+            '..',
+            '...'
+        ]
+
+        count = 0
         while message_id not in self.success_ids:
             time.sleep(0.001)
+
+            count += 1
+            if count % 1000:
+                self.display.add_message(message[count % 3])
 
     def on_receive(self, packet, interface):  # called when a packet arrives
         logging.debug(f'Received: {packet}')
