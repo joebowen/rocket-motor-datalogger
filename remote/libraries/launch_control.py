@@ -69,6 +69,8 @@ class LaunchControl:
             if not self.gpio.is_button_on('ready'):
                 return False
 
+        return True
+
     def receive_ready(self, args=None):
         print('Received ready signal')
 
