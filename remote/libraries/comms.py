@@ -24,8 +24,8 @@ class Comms:
 
         self.interface.radioConfig.preferences.is_low_power = False
         self.interface.radioConfig.preferences.is_router = True
-        self.interface.radioConfig.preferences.min_wake_secs = 10
-        self.interface.radioConfig.preferences.wait_bluetooth_secs = 10
+        self.interface.radioConfig.preferences.min_wake_secs = 1
+        self.interface.radioConfig.preferences.wait_bluetooth_secs = 1
         self.interface.radioConfig.channel_settings.modem_config = 3
         self.interface.writeConfig()
 
@@ -84,7 +84,8 @@ class Comms:
 
         message_id = self.interface.sendText(
             text=json.dumps(message),
-            wantAck=True
+            wantAck=True,
+            wantResponse=True
         ).id
 
         return message_id
