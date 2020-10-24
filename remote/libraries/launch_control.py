@@ -20,10 +20,13 @@ class LaunchControl:
         print(f'Waiting for the ready switch to be turned on.')
         self.gpio.wait_for_button('ready')
 
-        self.send_ready()
+        is_ready = self.send_ready()
 
-        print('Ready...')
-        self.display.add_message('READY')
+        if is_ready:
+            print('Ready...')
+            self.display.add_message('READY')
+
+        return is_ready
 
     def send_ready(self):
         message_id = self.comms.send_message(command='ready')
@@ -51,12 +54,13 @@ class LaunchControl:
             if not self.gpio.is_button_on('ready'):
                 return False
 
-        self.send_launch()
+        is_launch = self.send_launch()
 
-        self.gpio.wait_for_button_release('launch')
+        if is_launch:
+            print('Launch...')
+            self.display.add_message('LAUNCH')
 
-        print('Launch...')
-        self.display.add_message('LAUNCH')
+        return is_launch
 
     def send_launch(self):
         message_id = self.comms.send_message(command='launch')
