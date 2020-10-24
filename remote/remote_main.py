@@ -47,19 +47,25 @@ def main(debug):
 
     lc = LaunchControl(remote_id, disp)
 
+    print('Safe...')
+    disp.add_message('SAFE')
     while True:
-        print('Safe...')
-        disp.add_message('SAFE')
-
-        lc.wait_for_ready()
-        print('Ready...')
-        disp.add_message('READY')
+        if lc.wait_for_ready():
+            print('Ready...')
+            disp.add_message('READY')
+        else:
+            lc.send_safe()
+            continue
 
         if lc.wait_for_launch():
             print('Launch...')
             disp.add_message('LAUNCH')
+        else:
+            lc.send_safe()
+            continue
 
         lc.send_safe()
+        time.sleep(30)
 
 
 if __name__ == '__main__':

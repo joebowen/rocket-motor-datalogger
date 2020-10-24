@@ -41,12 +41,14 @@ class Comms:
     def on_connection(self, interface, topic=pub.AUTO_TOPIC):
         self.connected = True
 
-    def wait_for_ack(self, message_id):
+    def wait_for_ack(self, message_id, timeout=10):
         message = [
             '.',
             '..',
             '...'
         ]
+
+        start_time = time.time()
 
         count = 0
         while message_id not in self.success_ids:
@@ -57,6 +59,11 @@ class Comms:
                 if self.display:
                     self.display.add_message(message[count % 3])
 
+            if time.time() > start_time + timeout:
+                return False
+
+        return True
+
     def on_receive(self, packet, interface):  # called when a packet arrives
         logging.debug(f'Received: {packet}')
 
@@ -66,7 +73,7 @@ class Comms:
         if 'decoded' in packet and 'data' in packet['decoded'] and 'text' in packet['decoded']['data']:
             self.parse_message(packet['decoded']['data']['text'])
 
-    def send_message(self, command, args=None, wait_for_ack=False):
+    def send_message(self, command, args=None):
         message = {
             'remoteid': self.remoteid,
             'command': command
@@ -79,9 +86,6 @@ class Comms:
             text=json.dumps(message),
             wantAck=True
         ).id
-
-        if wait_for_ack:
-            self.wait_for_ack(message_id)
 
         return message_id
 
