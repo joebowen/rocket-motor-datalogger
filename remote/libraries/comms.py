@@ -17,15 +17,15 @@ class Comms:
         self.connected = False
         self.success_ids = []
 
-        self.interface = meshtastic.SerialInterface(devPath='/dev/ttyUSB0')
+        self.interface = meshtastic.SerialInterface()
 
         self.wait_till_connected()
 
         self.interface.radioConfig.preferences.is_low_power = False
         self.interface.radioConfig.preferences.is_router = True
         self.interface.radioConfig.preferences.min_wake_secs = 300
-        self.interface.radioConfig.preferences.wait_bluetooth_secs = 1
-        self.interface.radioConfig.channel_settings.modem_config = 2
+        self.interface.radioConfig.preferences.wait_bluetooth_secs = 0
+        self.interface.radioConfig.channel_settings.modem_config = 3
         self.interface.writeConfig()
 
     def __exit__(self, exc_type, exc_val, exc_tb):

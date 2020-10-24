@@ -5,11 +5,8 @@ import random
 import logging
 import time
 import sys
-import libraries.LCD_1in44 as LCD_1in44
-import libraries.LCD_Config as LCD_Config
 
-from PIL import Image, ImageDraw, ImageFont, ImageColor
-
+from libraries.display import Display
 from libraries.launch_control import LaunchControl
 
 
@@ -43,40 +40,24 @@ def main(debug):
     if debug:
         logging.getLogger().setLevel(logging.DEBUG)
 
-    LCD = LCD_1in44.LCD()
-    Lcd_ScanDir = LCD_1in44.SCAN_DIR_DFT  # SCAN_DIR_DFT = D2U_L2R
-    LCD.LCD_Init(Lcd_ScanDir)
-    LCD.LCD_Clear()
-
-    image = Image.new('RGB', (LCD.width, LCD.height), 'WHITE')
-    draw = ImageDraw.Draw(image)
-
     remoteid = random.randint(0, 10)
     print(f'remote id: {remoteid}')
-    draw.text((33, 22), f'REMOTE ID\n{remoteid}', fill='BLUE')
-    LCD.LCD_ShowImage(image, 0, 0)
-    draw.rectangle([(0, 0), (LCD.width, LCD.height)], fill='WHITE')
+
+    disp = Display(remoteid)
 
     lc = LaunchControl(remoteid)
 
     while True:
         print('Safe...')
-        draw.text((33, 22), 'SAFE', fill='BLUE')
-        LCD.LCD_ShowImage(image, 0, 0)
-        draw.rectangle([(0, 0), (LCD.width, LCD.height)], fill='WHITE')
+        disp.add_message('SAFE')
 
         lc.wait_for_ready()
         print('Ready...')
-        draw.text((33, 22), 'READY', fill='BLUE')
-        LCD.LCD_ShowImage(image, 0, 0)
-        draw.rectangle([(0, 0), (LCD.width, LCD.height)], fill='WHITE')
+        disp.add_message('READY')
 
         if lc.wait_for_launch():
             print('Launch...')
-            LCD.LCD_ShowImage(image, 0, 0)
-            draw.rectangle([(0, 0), (LCD.width, LCD.height)], fill='WHITE')
-
-            draw.text((33, 22), 'LAUNCH!!!', fill='BLUE')
+            disp.add_message('LAUNCH')
 
         lc.send_safe()
 
