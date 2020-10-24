@@ -26,7 +26,7 @@ class Comms:
         self.interface.radioConfig.preferences.is_router = True
         self.interface.radioConfig.preferences.min_wake_secs = 300
         self.interface.radioConfig.preferences.wait_bluetooth_secs = 0
-        self.interface.radioConfig.channel_settings.modem_config = 1
+        self.interface.radioConfig.channel_settings.modem_config = 2
         self.interface.writeConfig()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -34,7 +34,7 @@ class Comms:
 
     def wait_till_connected(self):
         while not self.connected:
-            time.sleep(1)
+            time.sleep(0.01)
 
         logging.info('Meshtastic comms successfully connected')
 
@@ -53,7 +53,7 @@ class Comms:
             time.sleep(0.01)
 
             count += 1
-            if count % 1000:
+            if count % 2000:
                 if self.display:
                     self.display.add_message(message[count % 3])
 
