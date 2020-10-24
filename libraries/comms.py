@@ -7,8 +7,10 @@ from pubsub import pub
 
 
 class Comms:
-    def __init__(self, message_types):
+    def __init__(self, message_types, remoteid=None, display=None):
         self.message_types = message_types
+        self.remoteid = remoteid
+        self.display = display
 
         pub.subscribe(self.on_receive, 'meshtastic.receive')
         pub.subscribe(self.on_connection, "meshtastic.connection.established")
@@ -24,10 +26,8 @@ class Comms:
         self.interface.radioConfig.preferences.is_router = True
         self.interface.radioConfig.preferences.min_wake_secs = 300
         self.interface.radioConfig.preferences.wait_bluetooth_secs = 0
-        self.interface.radioConfig.channel_settings.modem_config = 2
+        self.interface.radioConfig.channel_settings.modem_config = 1
         self.interface.writeConfig()
-
-        self.remoteid = int(input("Enter the remote id shown on the launch controller: "))
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.interface.close()
@@ -42,8 +42,20 @@ class Comms:
         self.connected = True
 
     def wait_for_ack(self, message_id):
+        message = [
+            '.',
+            '..',
+            '...'
+        ]
+
+        count = 0
         while message_id not in self.success_ids:
-            time.sleep(0.001)
+            time.sleep(0.01)
+
+            count += 1
+            if count % 1000:
+                if self.display:
+                    self.display.add_message(message[count % 3])
 
     def on_receive(self, packet, interface):  # called when a packet arrives
         logging.debug(f'Received: {packet}')
@@ -53,6 +65,25 @@ class Comms:
 
         if 'decoded' in packet and 'data' in packet['decoded'] and 'text' in packet['decoded']['data']:
             self.parse_message(packet['decoded']['data']['text'])
+
+    def send_message(self, command, args=None, wait_for_ack=False):
+        message = {
+            'remoteid': self.remoteid,
+            'command': command
+        }
+
+        if args:
+            message['args'] = args
+
+        message_id = self.interface.sendText(
+            text=json.dumps(message),
+            wantAck=True
+        ).id
+
+        if wait_for_ack:
+            self.wait_for_ack(message_id)
+
+        return message_id
 
     def parse_message(self, message):
         try:

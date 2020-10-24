@@ -167,10 +167,12 @@ def main(freq, calibrate, config, debug):
 
             data_logger = DataLogger(frequency=freq, sensors=sensors, maxruntime=0, raw_voltage=False)
             data_logger.start()
-            data_logger.wait_for_datalogger()
-            data_logger.output_final_results()
 
             lc.wait_for_safe()
+
+            data_logger.stop()
+            data_logger.output_final_results()
+
 
 
 if __name__ == '__main__':

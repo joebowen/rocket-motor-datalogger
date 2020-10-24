@@ -21,14 +21,14 @@ class LaunchControl:
     def wait_for_ready(self):
         print('Waiting for the ready command to be sent.')
         while self.current_state != 'ready':
-            time.sleep(1)
+            time.sleep(0.1)
 
         self.ready()
 
     def wait_for_safe(self):
         print('Waiting for the safe command to be sent.')
         while self.current_state != 'safe':
-            time.sleep(1)
+            time.sleep(0.1)
 
         self.safe()
 

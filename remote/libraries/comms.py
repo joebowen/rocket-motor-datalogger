@@ -26,7 +26,7 @@ class Comms:
         self.interface.radioConfig.preferences.is_router = True
         self.interface.radioConfig.preferences.min_wake_secs = 300
         self.interface.radioConfig.preferences.wait_bluetooth_secs = 0
-        self.interface.radioConfig.channel_settings.modem_config = 3
+        self.interface.radioConfig.channel_settings.modem_config = 1
         self.interface.writeConfig()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -50,11 +50,12 @@ class Comms:
 
         count = 0
         while message_id not in self.success_ids:
-            time.sleep(0.001)
+            time.sleep(0.01)
 
             count += 1
             if count % 1000:
-                self.display.add_message(message[count % 3])
+                if self.display:
+                    self.display.add_message(message[count % 3])
 
     def on_receive(self, packet, interface):  # called when a packet arrives
         logging.debug(f'Received: {packet}')
@@ -76,8 +77,7 @@ class Comms:
 
         message_id = self.interface.sendText(
             text=json.dumps(message),
-            wantAck=True,
-            wantResponse=True
+            wantAck=True
         ).id
 
         if wait_for_ack:
