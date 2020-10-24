@@ -12,8 +12,8 @@ class Display:
         self.LCD.LCD_Clear()
 
         font_path = "fonts/FreeMonoBold.ttf"
-        font_size = 16
-        self.font = ImageFont.truetype(font_path, font_size)
+        self.small_font = ImageFont.truetype(font_path, 20)
+        self.large_font = ImageFont.truetype(font_path, 30)
 
         self.remote_id = remote_id
 
@@ -24,14 +24,15 @@ class Display:
         self.refresh_display()
 
     def add_remote_id(self):
-        self.draw.text((10, 10), f'ID - {self.remote_id}', fill='BLUE', font=self.font)
+        self.draw.text((0, 0), f'ID', fill='BLUE', font=self.small_font)
+        self.draw.text((30, 0), f'{self.remote_id}', fill='BLUE', font=self.large_font)
 
         self.refresh_display()
 
     def add_message(self, message):
         self.clear_message()
 
-        self.draw.text((10, 64), message, fill='BLUE', font=self.font)
+        self.draw.text((10, 64), message, fill='BLUE', font=self.large_font)
 
         self.refresh_display()
 
