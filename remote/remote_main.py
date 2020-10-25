@@ -47,7 +47,7 @@ def main(debug):
 
     lc = LaunchControl(remote_id, disp)
 
-    disp.add_message('MAKE\NSAFE')
+    disp.add_message('MAKE\nSAFE')
     lc.wait_for_safe()
 
     while True:
