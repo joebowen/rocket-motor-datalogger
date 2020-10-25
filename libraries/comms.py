@@ -22,6 +22,7 @@ class Comms:
 
         self.wait_till_connected()
 
+    def set_config(self):
         self.interface.radioConfig.preferences.is_low_power = False
         self.interface.radioConfig.preferences.is_router = True
 
