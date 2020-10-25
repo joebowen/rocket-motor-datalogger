@@ -74,10 +74,6 @@ class LaunchControl:
                 if time.time() > start_time + timeout:
                     return False
 
-                if not self.gpio.is_button_on('ready'):
-                    self.send_safe()
-                    return False
-
         return is_launch
 
     def send_launch(self):
