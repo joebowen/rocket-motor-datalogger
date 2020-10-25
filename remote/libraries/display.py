@@ -32,7 +32,7 @@ class Display:
     def add_message(self, message):
         self.clear_message()
 
-        self.draw.text((10, 64), message, fill='BLUE', font=self.large_font)
+        self.draw.text((0, 40), message, fill='BLUE', font=self.large_font)
 
         self.refresh_display()
 
@@ -40,5 +40,5 @@ class Display:
         self.LCD.LCD_ShowImage(self.image, 0, 0)
 
     def clear_message(self):
-        self.draw.rectangle([(0, 64), (self.LCD.width, self.LCD.height)], fill='WHITE')
+        self.draw.rectangle([(0, 40), (self.LCD.width, self.LCD.height)], fill='WHITE')
 

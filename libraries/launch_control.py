@@ -13,7 +13,8 @@ class LaunchControl:
         message_types = {
             'ready': self.ready,
             'safe': self.safe,
-            'launch': self.launch
+            'launch': self.launch,
+            'post-launch': self.post_launch
         }
 
         remote_id = int(input("Enter the remote id shown on the launch controller: "))
@@ -51,3 +52,7 @@ class LaunchControl:
             time.sleep(30)
             self.relays.relay_off('ignition')
             self.current_state = 'post-ignition'
+            self.comms.send_message(command='post-launch')
+
+    def post_launch(self, args=None):
+        print('Received post launch signal')

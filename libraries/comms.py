@@ -26,7 +26,7 @@ class Comms:
         self.interface.radioConfig.preferences.is_low_power = False
         self.interface.radioConfig.preferences.is_router = True
 
-        self.interface.radioConfig.channel_settings.modem_config = 3
+        self.interface.radioConfig.channel_settings.modem_config = 1
 
         self.interface.radioConfig.preferences.position_broadcast_secs = 900
         self.interface.radioConfig.preferences.send_owner_interval = 4
