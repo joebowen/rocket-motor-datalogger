@@ -72,7 +72,7 @@ class LaunchControl:
             start_time = time.time()
             while self.current_state == 'launch':
                 if time.time() > start_time + timeout:
-                    return False
+                    break
 
         return is_launch
 
@@ -99,3 +99,6 @@ class LaunchControl:
         print('Received post launch signal')
 
         self.current_state = 'post-launch'
+
+        if not self.gpio.is_button_on('ready'):
+            self.send_safe()
