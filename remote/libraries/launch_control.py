@@ -68,7 +68,7 @@ class LaunchControl:
                 self.send_safe()
                 return False
 
-            if self.gpio.is_button_on('fill'):
+            if not self.filling and self.gpio.is_button_on('fill'):
                 self.filling = True
                 self.send_fill_on()
 
@@ -76,7 +76,7 @@ class LaunchControl:
                 self.filling = False
                 self.send_fill_off()
 
-            if self.gpio.is_button_on('dump'):
+            if not self.dumping and self.gpio.is_button_on('dump'):
                 self.dumping = True
                 self.send_dump_on()
 
