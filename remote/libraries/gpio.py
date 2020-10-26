@@ -3,14 +3,13 @@ from gpiozero import LED, Button
 
 class GPIO:
     def __init__(self):
-        self.relays = {
-            'ready_led': LED(5),
-            'launch_led': LED(6)
-        }
+        self.relays = {}
 
         self.buttons = {
             'ready': Button(2),
-            'launch': Button(3)
+            'launch': Button(3),
+            'fill': Button(5),
+            'dump': Button(6)
         }
 
     def relay_off(self, relay_name):

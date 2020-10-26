@@ -143,9 +143,10 @@ def calibrate_mode(sensors, config, freq):
 @click.command()
 @click.option('-f', '--freq', type=int, default=1000, help='Data Logging Frequency - Default: 1000 Hz')
 @click.option('-c', '--calibrate', is_flag=True, help='Use this mode to calibrate the channels')
+@click.option('-r', '--remoteid', default=None, help='Remote ID')
 @click.option('--config', type=str, default='sensors.json', help='Config file - Default: sensors.json')
 @click.option('-d', '--debug', is_flag=True, help='Turn on debugging')
-def main(freq, calibrate, config, debug):
+def main(freq, calibrate, remoteid, config, debug):
     if debug:
         logging.getLogger().setLevel(logging.DEBUG)
 
@@ -160,7 +161,7 @@ def main(freq, calibrate, config, debug):
         calibrate_mode(sensors, config, freq)
 
     else:
-        lc = LaunchControl()
+        lc = LaunchControl(remoteid)
 
         while True:
             lc.wait_for_ready()
@@ -172,7 +173,6 @@ def main(freq, calibrate, config, debug):
 
             data_logger.stop()
             data_logger.output_final_results()
-
 
 
 if __name__ == '__main__':

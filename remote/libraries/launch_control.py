@@ -9,12 +9,18 @@ class LaunchControl:
         self.gpio = GPIO()
         self.receive_safe()
         self.current_state = 'safe'
+        self.filling = False
+        self.dumping = False
 
         message_types = {
             'ready': self.receive_ready,
             'safe': self.receive_safe,
             'launch': self.receive_launch,
-            'post-launch': self.receive_post_launch
+            'post-launch': self.receive_post_launch,
+            'fill-relay-on': self.receive_fill_relay_on,
+            'fill-relay-off': self.receive_fill_relay_off,
+            'dump-relay-on': self.receive_dump_relay_on,
+            'dump-relay-off': self.receive_dump_relay_off
         }
 
         self.display = display
@@ -62,6 +68,22 @@ class LaunchControl:
                 self.send_safe()
                 return False
 
+            if self.gpio.is_button_on('fill'):
+                self.filling = True
+                self.send_fill_on()
+
+            if self.filling and not self.gpio.is_button_on('fill'):
+                self.filling = False
+                self.send_fill_off()
+
+            if self.gpio.is_button_on('dump'):
+                self.dumping = True
+                self.send_dump_on()
+
+            if self.dumping and not self.gpio.is_button_on('dump'):
+                self.dumping = False
+                self.send_dump_off()
+
         is_launch = self.send_launch()
 
         if is_launch:
@@ -102,3 +124,27 @@ class LaunchControl:
 
         if not self.gpio.is_button_on('ready'):
             self.send_safe()
+
+    def send_fill_on(self):
+        self.comms.send_message(command='fill-relay-on')
+
+    def send_fill_off(self):
+        self.comms.send_message(command='fill-relay-off')
+
+    def send_dump_on(self):
+        self.comms.send_message(command='dump-relay-on')
+
+    def send_dump_off(self):
+        self.comms.send_message(command='dump-relay-off')
+
+    def receive_fill_relay_on(self, args=None):
+        print('Received fill relay on signal')
+
+    def receive_fill_relay_off(self, args=None):
+        print('Received fill relay off signal')
+
+    def receive_dump_relay_on(self, args=None):
+        print('Received dump relay on signal')
+
+    def receive_dump_relay_off(self, args=None):
+        print('Received dump relay off signal')
