@@ -36,7 +36,7 @@ sys.stdout = sl
 
 
 @click.command()
-@click.option('-p', '--prefix', type=str, default='video', help='Filename prefix')
+@click.option('-p', '--prefix', type=str, default='pi-hq', help='Filename prefix')
 @click.option('-d', '--debug', is_flag=True, help='Turn on debugging')
 @click.option('-r', '--remoteid', type=int, default=None, help='Remote ID')
 @click.option('--nopreview', is_flag=True, help='Turn off the preview window')
