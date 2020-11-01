@@ -1,61 +1,65 @@
 {
     "channel0": {
+        "channel": 0,
         "input": {},
-        "linear_adj": 0,
-        "max": 111.20555,
+        "linear_adj": 8.291015625,
+        "max": 30.0,
         "min": 0,
-        "scalar_adj": 1,
+        "opamp_mul": 1,
+        "scalar_adj": 1.4975323378209635,
         "sensor_name": "Load Cell",
         "sensor_type": "loadcell",
         "units": "Newtons"
     },
     "channel1": {
+        "channel": 1,
         "input": {
-            "max_psi": 1000,
-            "opamp_mul": 4.3
+            "max_psi": 1000
         },
-        "linear_adj": 0,
+        "linear_adj": -9.9951171875,
         "max": 1000,
         "min": 0,
+        "opamp_mul": 4.3,
         "scalar_adj": 1,
         "sensor_name": "Chamber Pressure",
         "sensor_type": "pressure",
         "units": "PSI"
     },
     "channel2": {
+        "channel": 2,
         "input": {
-            "max_psi": 1500,
-            "opamp_mul": 4.3
+            "max_psi": 1600
         },
-        "linear_adj": 0,
-        "max": 1500,
+        "linear_adj": -9.9951171875,
+        "max": 1600,
         "min": 0,
+        "opamp_mul": 4.3,
         "scalar_adj": 1,
         "sensor_name": "Tank Pressure",
         "sensor_type": "pressure",
         "units": "PSI"
     },
     "channel3": {
-        "input": {
-            "opamp_mul": 4.3
-        },
-        "linear_adj": 0,
-        "max": 750,
-        "min": 20,
+        "channel": 3,
+        "input": {},
+        "linear_adj": -4.204709693884,
+        "max": 40,
+        "min": -100,
+        "opamp_mul": 4.3,
         "scalar_adj": 1,
-        "sensor_name": "Second Temperature",
+        "sensor_name": "Tank Temperature",
         "sensor_type": "temp",
         "units": "Celsius"
     },
     "channel4": {
-        "input": {
-            "opamp_mul": 4.3
-        },
-        "linear_adj": 0,
-        "max": 40,
-        "min": -100,
+        "channel": 4,
+        "input": {},
+        "linear_adj": -4.18437550566343,
+        "max": 750,
+        "min": 20,
+        "opamp_mul": 4.3,
         "scalar_adj": 1,
-        "sensor_name": "Tank Temperature",
+        "sensor_name": "Chamber Temperature",
         "sensor_type": "temp",
         "units": "Celsius"
     }
