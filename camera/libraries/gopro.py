@@ -1,5 +1,6 @@
 import logging
 import time
+import subprocess
 
 from goprocam import GoProCamera, constants
 
@@ -22,4 +23,7 @@ class GoPro:
             while self.camera.IsRecording():
                 time.sleep(0.1)
 
-            self.camera.downloadLastMedia(custom_filename="GoPro_"+str(int(time.time()))+".MP4")
+            filename = "/tmp/GoPro_"+str(int(time.time()))
+            self.camera.downloadLastMedia(custom_filename=filename+".MP4")
+            subprocess.call(f'nohup gopro convert {filename}.MP4 && cp {filename}.mov /home/pi/Desktop &')
+
