@@ -19,7 +19,10 @@ class LaunchControl:
             'dump-relay-off': self.receive_dump_relay_off
         }
 
-        self.comms = Comms(message_types, remoteid=remoteid, display=display)
+        if not remoteid:
+            remoteid = int(input("Enter the remote id shown on the launch controller: "))
+
+        self.comms = Comms(message_types, remoteid=remoteid)
 
     def wait_for_ready(self):
         print('Waiting for the ready command to be sent.')
