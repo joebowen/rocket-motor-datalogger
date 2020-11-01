@@ -23,5 +23,6 @@ class GoPro:
             while self.camera.IsRecording():
                 time.sleep(0.1)
 
-            self.camera.downloadLastMedia(custom_filename=f'{self.base_dir}/gopro-{int(time.time())}.mp4')
+            # This tends to be too slow
+            # self.camera.downloadLastMedia(custom_filename=f'{self.base_dir}/gopro-{int(time.time())}.mp4')
 
