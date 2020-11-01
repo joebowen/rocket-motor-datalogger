@@ -37,18 +37,16 @@ sys.stdout = sl
 @click.command()
 @click.option('-p', '--prefix', type=str, default='video', help='Filename prefix')
 @click.option('-d', '--debug', is_flag=True, help='Turn on debugging')
-def main(debug, prefix):
+@click.option('-r', '--remoteid', default=None, help='Remote ID')
+def main(prefix, debug, remoteid):
     if debug:
         logging.getLogger().setLevel(logging.DEBUG)
-
-    remote_id = random.randint(0, 9999)
-    print(f'remote id: {remote_id}')
 
     camera = Camera()
 
     camera.start_preview()
 
-    lc = LaunchControl(remote_id)
+    lc = LaunchControl(remoteid)
 
     while True:
         if not lc.wait_for_ready():
