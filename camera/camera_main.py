@@ -37,7 +37,7 @@ sys.stdout = sl
 @click.command()
 @click.option('-p', '--prefix', type=str, default='video', help='Filename prefix')
 @click.option('-d', '--debug', is_flag=True, help='Turn on debugging')
-@click.option('-r', '--remoteid', default=None, help='Remote ID')
+@click.option('-r', '--remoteid', type=int, default=None, help='Remote ID')
 def main(prefix, debug, remoteid):
     if debug:
         logging.getLogger().setLevel(logging.DEBUG)
