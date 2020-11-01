@@ -56,8 +56,8 @@ def main(prefix, debug, remoteid, nopreview):
     if not os.path.exists(base_dir):
         os.makedirs(base_dir)
 
-    camera = Camera()
-    gopro = GoPro()
+    camera = Camera(base_dir)
+    gopro = GoPro(base_dir)
 
     while True:
         if not nopreview:
