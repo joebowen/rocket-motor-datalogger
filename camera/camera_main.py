@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 
 import click
-import random
 import logging
 import time
 import sys
 
+from libraries.gopro import GoPro
 from libraries.camera import Camera
 from libraries.launch_control import LaunchControl
 
@@ -45,6 +45,7 @@ def main(prefix, debug, remoteid):
     lc = LaunchControl(remoteid)
 
     camera = Camera()
+    gopro = GoPro()
 
     camera.start_preview()
 
@@ -53,11 +54,13 @@ def main(prefix, debug, remoteid):
             continue
 
         camera.start_recording(filename=f'{prefix}-{int(time.time())}.h264')
+        gopro.start_recording()
 
         if not lc.wait_for_safe():
             continue
 
         camera.stop_recording()
+        gopro.stop_recording()
 
 
 if __name__ == '__main__':

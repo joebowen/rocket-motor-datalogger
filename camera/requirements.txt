@@ -4,3 +4,4 @@ multiprocessing_logging
 meshtastic
 gpiozero
 picamera
+goprocam
