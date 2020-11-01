@@ -46,13 +46,13 @@ def main(prefix, debug, remoteid):
 
     camera = Camera()
 
-    camera.start_preview()
+    # camera.start_preview()
 
     while True:
         if not lc.wait_for_ready():
             continue
 
-        camera.start_recording(filename=f'{prefix}.h264')
+        camera.start_recording(filename=f'{prefix}-{int(time.time())}.h264')
 
         if not lc.wait_for_safe():
             continue

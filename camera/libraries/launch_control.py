@@ -5,7 +5,6 @@ from libraries.comms import Comms
 
 class LaunchControl:
     def __init__(self, remoteid):
-        self.receive_safe()
         self.current_state = 'safe'
 
         message_types = {
@@ -27,12 +26,12 @@ class LaunchControl:
     def wait_for_ready(self):
         print('Waiting for the ready command to be sent.')
         while self.current_state != 'ready':
-            time.sleep(0.01)
+            time.sleep(0.1)
 
     def wait_for_safe(self):
         print('Waiting for the safe command to be sent.')
         while self.current_state != 'safe':
-            time.sleep(0.01)
+            time.sleep(0.1)
 
     def receive_ready(self, args=None):
         print('Received ready signal')
