@@ -48,10 +48,10 @@ def main(prefix, debug, remoteid, nopreview):
     camera = Camera()
     gopro = GoPro()
 
-    if not nopreview:
-        camera.start_preview()
-
     while True:
+        if not nopreview:
+            camera.start_preview()
+
         if not lc.wait_for_ready():
             continue
 
@@ -60,6 +60,9 @@ def main(prefix, debug, remoteid, nopreview):
 
         if not lc.wait_for_safe():
             continue
+
+        if not nopreview:
+            camera.stop_preview()
 
         camera.stop_recording()
         gopro.stop_recording()

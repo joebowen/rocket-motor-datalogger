@@ -25,5 +25,5 @@ class GoPro:
 
             filename = "/tmp/GoPro_"+str(int(time.time()))
             self.camera.downloadLastMedia(custom_filename=filename+".MP4")
-            subprocess.call(['nohup', 'gopro', 'convert', f'{filename}.MP4', '&&', 'cp', f'{filename}.mov',  '/home/pi/Desktop', '&'], stdout=subprocess.PIPE)
+            subprocess.call(['gopro', 'convert', f'{filename}.MP4', '&&', 'cp', f'{filename}.mov',  '/home/pi/Desktop'])
 
