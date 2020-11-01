@@ -2,7 +2,8 @@ libusb1
 matplotlib
 numpy
 pandas
-pyqt5
+PyQt5
+PyQt5-sip
 click
 multiprocessing_logging
 scipy

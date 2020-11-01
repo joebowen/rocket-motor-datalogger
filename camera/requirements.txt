@@ -1,0 +1,6 @@
+libusb1
+click
+multiprocessing_logging
+meshtastic
+gpiozero
+picamera
