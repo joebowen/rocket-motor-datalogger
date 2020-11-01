@@ -2,9 +2,13 @@ import os
 import random
 import queue
 import threading
+import logging
 
 import pandas as pd
 from scipy import integrate
+
+from time import sleep, perf_counter
+from datetime import datetime
 
 from usb1 import USBError
 from libraries.mccUSB import OverrunError as mccOverrunError
@@ -52,13 +56,13 @@ class ProducerThread(threading.Thread):
                         if e.value == -7 or e.value == -4:  # or e.value == -9:
                             # Normal, the device is probably waiting for a trigger
                             logging.info(f'USB Timeout occurred, probably waiting for trigger')
-                            time.sleep(random.random())
+                            sleep(random.random())
                         else:
                             raise
                     except mccOverrunError:
                         self.data_logger.stop()
 
-                    time.sleep(random.random())
+                    sleep(random.random())
 
         except (KeyboardInterrupt, SystemExit):
             self.data_logger.stop()
@@ -82,7 +86,7 @@ class ConsumerThread(threading.Thread):
                     if self.maxruntime and self.data_logger.timestamp > self.maxruntime:
                         self.data_logger.stop()
 
-                time.sleep(0.001)
+                sleep(0.001)
 
         except (KeyboardInterrupt, SystemExit):
             self.data_logger.stop()
@@ -149,7 +153,7 @@ class DataLogger:
 
         logging.info('Turn on the green switch when ready to start logging...')
         while not self.usb20x.DPort():
-            time.sleep(random.random())
+            sleep(random.random())
 
         self.usb20x.AInScanStart(0, self.frequency * self.nchan, self.channels, self.options, self.usb20x.NO_TRIGGER, self.usb20x.LEVEL_HIGH)
 
@@ -307,7 +311,7 @@ class DataLogger:
                 self.usb20x.AInScanClearFIFO()
                 reset_in_progress = False
             except:
-                time.sleep(sleep_delay)
+                sleep(sleep_delay)
                 sleep_delay += .1
                 if sleep_delay > 5:
                     raise
