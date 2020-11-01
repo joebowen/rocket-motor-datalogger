@@ -5,3 +5,5 @@ meshtastic
 gpiozero
 picamera
 goprocam
+pgmagick
+bc

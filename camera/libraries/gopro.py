@@ -23,8 +23,5 @@ class GoPro:
             while self.camera.IsRecording():
                 time.sleep(0.1)
 
-            filename = f'/tmp/gopro-{int(time.time())}'
-            self.camera.downloadLastMedia(custom_filename=filename+".mp4")
-            subprocess.call(['gopro', 'convert', f'{filename}.mp4'])
-            subprocess.call(['cp', f'{filename}.mov',  '/home/pi/Desktop/video'])
+            self.camera.downloadLastMedia(custom_filename=f'/home/pi/Desktop/video/gopro-{int(time.time())}.mp4')
 
