@@ -1,4 +1,5 @@
 import time
+import logging
 
 from libraries.comms import Comms
 
@@ -24,41 +25,41 @@ class LaunchControl:
         self.comms = Comms(message_types, remoteid=remoteid)
 
     def wait_for_ready(self):
-        print('Waiting for the ready command to be sent.')
+        logging.info('Waiting for the ready command to be sent.')
         while self.current_state != 'ready':
             time.sleep(0.1)
 
         return True
 
     def wait_for_safe(self):
-        print('Waiting for the safe command to be sent.')
+        logging.info('Waiting for the safe command to be sent.')
         while self.current_state != 'safe':
             time.sleep(0.1)
 
         return True
 
     def receive_ready(self, args=None):
-        print('Received ready signal')
+        logging.info('Received ready signal')
         self.current_state = 'ready'
 
     def receive_safe(self, args=None):
-        print('Received safe signal')
+        logging.info('Received safe signal')
         self.current_state = 'safe'
 
     def receive_launch(self, args=None):
-        print('Received launch signal')
+        logging.info('Received launch signal')
 
     def receive_post_launch(self, args=None):
-        print('Received post launch signal')
+        logging.info('Received post launch signal')
 
     def receive_fill_relay_on(self, args=None):
-        print('Received fill relay on signal')
+        logging.info('Received fill relay on signal')
 
     def receive_fill_relay_off(self, args=None):
-        print('Received fill relay off signal')
+        logging.info('Received fill relay off signal')
 
     def receive_dump_relay_on(self, args=None):
-        print('Received dump relay on signal')
+        logging.info('Received dump relay on signal')
 
     def receive_dump_relay_off(self, args=None):
-        print('Received dump relay off signal')
+        logging.info('Received dump relay off signal')
