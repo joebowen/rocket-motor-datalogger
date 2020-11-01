@@ -48,7 +48,8 @@ def main(prefix, debug, remoteid, nopreview):
 
     media_dirs = os.listdir('/media/')
     if media_dirs:
-        base_dir = f'/media/{media_dirs[0]}'
+        media_dirs = os.listdir('/media/pi/')
+        base_dir = f'/media/pi/{media_dirs[0]}'
     else:
         base_dir = '/home/pi/Desktop/video'
 
