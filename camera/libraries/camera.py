@@ -1,15 +1,8 @@
 import sys
-import time
-import Queue
 import threading
 import logging
 
 from picamera import PiCamera
-
-
-def add_input(input_queue):
-    while True:
-        input_queue.put(sys.stdin.read(1))
 
 
 class Camera:
