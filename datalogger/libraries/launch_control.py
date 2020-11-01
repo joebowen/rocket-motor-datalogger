@@ -1,7 +1,7 @@
 import time
 
-from datalogger.libraries.gpio import GPIO
-from datalogger.libraries.comms import Comms
+from libraries.gpio import GPIO
+from libraries.comms import Comms
 
 
 class LaunchControl:

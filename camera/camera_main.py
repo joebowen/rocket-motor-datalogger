@@ -8,7 +8,7 @@ import os
 
 from libraries.gopro import GoPro
 from libraries.camera import Camera
-from datalogger.libraries.launch_control import LaunchControl
+from libraries.launch_control import LaunchControl
 
 
 class StreamToLogger(object):

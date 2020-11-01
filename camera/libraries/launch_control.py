@@ -1,7 +1,7 @@
 import time
 import logging
 
-from datalogger.libraries.comms import Comms
+from libraries.comms import Comms
 
 
 class LaunchControl:

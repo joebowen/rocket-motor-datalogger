@@ -6,7 +6,7 @@ import logging
 import sys
 
 from libraries.display import Display
-from datalogger.libraries.launch_control import LaunchControl
+from libraries.launch_control import LaunchControl
 
 
 class StreamToLogger(object):
