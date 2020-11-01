@@ -66,14 +66,14 @@ def main(prefix, debug, remoteid, nopreview):
         if not lc.wait_for_ready():
             continue
 
+        if not nopreview:
+            camera.stop_preview()
+
         camera.start_recording(filename=f'{prefix}-{int(time.time())}.h264')
         gopro.start_recording()
 
         if not lc.wait_for_safe():
             continue
-
-        if not nopreview:
-            camera.stop_preview()
 
         camera.stop_recording()
         gopro.stop_recording()
