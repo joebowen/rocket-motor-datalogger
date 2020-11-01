@@ -66,7 +66,7 @@ def main(prefix, debug, remoteid, nopreview):
         if not lc.wait_for_ready():
             continue
 
-        camera.start_recording(filename=f'/home/pi/Desktop/video/{prefix}-{int(time.time())}.h264')
+        camera.start_recording(filename=f'{prefix}-{int(time.time())}.h264')
         gopro.start_recording()
 
         if not lc.wait_for_safe():
