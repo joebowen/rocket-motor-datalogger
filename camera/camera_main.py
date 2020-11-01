@@ -46,7 +46,7 @@ def main(prefix, debug, remoteid):
 
     camera = Camera()
 
-    # camera.start_preview()
+    camera.start_preview()
 
     while True:
         if not lc.wait_for_ready():
