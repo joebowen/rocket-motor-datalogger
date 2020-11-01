@@ -42,11 +42,11 @@ def main(prefix, debug, remoteid):
     if debug:
         logging.getLogger().setLevel(logging.DEBUG)
 
+    lc = LaunchControl(remoteid)
+
     camera = Camera()
 
     camera.start_preview()
-
-    lc = LaunchControl(remoteid)
 
     while True:
         if not lc.wait_for_ready():
