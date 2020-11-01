@@ -4,7 +4,7 @@ from libraries.comms import Comms
 
 
 class LaunchControl:
-    def __init__(self, remoteid, display):
+    def __init__(self, remoteid):
         self.receive_safe()
         self.current_state = 'safe'
 
