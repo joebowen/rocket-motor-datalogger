@@ -38,7 +38,8 @@ sys.stdout = sl
 @click.option('-p', '--prefix', type=str, default='video', help='Filename prefix')
 @click.option('-d', '--debug', is_flag=True, help='Turn on debugging')
 @click.option('-r', '--remoteid', type=int, default=None, help='Remote ID')
-def main(prefix, debug, remoteid):
+@click.option('--nopreview', is_flag=True, help='Turn off the preview window')
+def main(prefix, debug, remoteid, nopreview):
     if debug:
         logging.getLogger().setLevel(logging.DEBUG)
 
@@ -47,7 +48,8 @@ def main(prefix, debug, remoteid):
     camera = Camera()
     gopro = GoPro()
 
-    camera.start_preview()
+    if not nopreview:
+        camera.start_preview()
 
     while True:
         if not lc.wait_for_ready():
