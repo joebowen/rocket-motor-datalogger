@@ -1,11 +1,22 @@
+import sys
+import time
+import Queue
+import threading
 import logging
 
 from picamera import PiCamera
 
 
+def add_input(input_queue):
+    while True:
+        input_queue.put(sys.stdin.read(1))
+
+
 class Camera:
     def __init__(self, base_dir='/home/pi/Desktop/video'):
         self.base_dir = base_dir
+        self.stop_preview_thread = None
+
         self.camera = PiCamera()
 
         self.camera.resolution = (1920, 1080)
@@ -31,6 +42,15 @@ class Camera:
     def start_preview(self):
         self.camera.start_preview()
         self.camera.preview_fullscreen = True
+
+        self.stop_preview_thread = threading.Thread(target=self.stop_preview_watcher)
+        self.stop_preview_thread.daemon = True
+        self.stop_preview_thread.start()
+
+    def stop_preview_watcher(self):
+        while True:
+            if sys.stdin.read(1) == '\x1b':
+                self.stop_preview()
 
     def stop_preview(self):
         if self.camera.previewing:
