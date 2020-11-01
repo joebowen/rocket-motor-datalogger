@@ -18,4 +18,8 @@ class GoPro:
         logging.info('Stop recording...')
         if self.camera.IsRecording():
             self.camera.shutter(constants.stop)
+
+            while self.camera.IsRecording():
+                time.sleep(0.1)
+
             self.camera.downloadLastMedia(custom_filename="GoPro_"+str(int(time.time()))+".MP4")
