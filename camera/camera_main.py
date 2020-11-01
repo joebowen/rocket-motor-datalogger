@@ -4,6 +4,7 @@ import click
 import logging
 import time
 import sys
+import os
 
 from libraries.gopro import GoPro
 from libraries.camera import Camera
@@ -45,6 +46,9 @@ def main(prefix, debug, remoteid, nopreview):
 
     lc = LaunchControl(remoteid)
 
+    if not os.path.exists('/home/pi/Desktop/video'):
+        os.makedirs('/home/pi/Desktop/video')
+
     camera = Camera()
     gopro = GoPro()
 
@@ -55,7 +59,7 @@ def main(prefix, debug, remoteid, nopreview):
         if not lc.wait_for_ready():
             continue
 
-        camera.start_recording(filename=f'{prefix}-{int(time.time())}.h264')
+        camera.start_recording(filename=f'/home/pi/Desktop/video/{prefix}-{int(time.time())}.h264')
         gopro.start_recording()
 
         if not lc.wait_for_safe():
