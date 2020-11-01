@@ -133,4 +133,4 @@ dmypy.json
 output_data/*
 tests/*
 
-sensors.json
+datalogger/sensors.json

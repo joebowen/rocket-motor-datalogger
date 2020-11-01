@@ -8,7 +8,7 @@ import os
 
 from libraries.gopro import GoPro
 from libraries.camera import Camera
-from libraries.launch_control import LaunchControl
+from datalogger.libraries.launch_control import LaunchControl
 
 
 class StreamToLogger(object):
@@ -46,8 +46,14 @@ def main(prefix, debug, remoteid, nopreview):
 
     lc = LaunchControl(remoteid)
 
-    if not os.path.exists('/home/pi/Desktop/video'):
-        os.makedirs('/home/pi/Desktop/video')
+    media_dirs = os.listdir('/media/')
+    if media_dirs:
+        base_dir = f'/media/{media_dirs[0]}'
+    else:
+        base_dir = '/home/pi/Desktop/video'
+
+    if not os.path.exists(base_dir):
+        os.makedirs(base_dir)
 
     camera = Camera()
     gopro = GoPro()

@@ -1,13 +1,13 @@
 import logging
 import time
-import subprocess
 
 from goprocam import GoProCamera, constants
 
 
 class GoPro:
-    def __init__(self):
+    def __init__(self, base_dir='/home/pi/Desktop/video'):
         self.camera = GoProCamera.GoPro()
+        self.base_dir = base_dir
 
         self.camera.video_settings("1080p", "60")
 
@@ -23,5 +23,5 @@ class GoPro:
             while self.camera.IsRecording():
                 time.sleep(0.1)
 
-            self.camera.downloadLastMedia(custom_filename=f'/home/pi/Desktop/video/gopro-{int(time.time())}.mp4')
+            self.camera.downloadLastMedia(custom_filename=f'{self.base_dir}/gopro-{int(time.time())}.mp4')
 

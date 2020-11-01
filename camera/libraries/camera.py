@@ -2,8 +2,10 @@ import logging
 
 from picamera import PiCamera
 
+
 class Camera:
-    def __init__(self):
+    def __init__(self, base_dir='/home/pi/Desktop/video'):
+        self.base_dir = base_dir
         self.camera = PiCamera()
 
         self.camera.resolution = (1920, 1080)
@@ -19,7 +21,7 @@ class Camera:
 
     def start_recording(self, filename='test.h264'):
         logging.info('Start recording...')
-        self.camera.start_recording(filename, format='h264', level='4.2', bitrate=17000000, quality=20)
+        self.camera.start_recording(f'{self.base_dir}/{filename}', format='h264', level='4.2', bitrate=17000000, quality=20)
 
     def stop_recording(self):
         logging.info('Stop recording...')

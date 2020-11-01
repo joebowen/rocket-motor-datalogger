@@ -3,11 +3,10 @@
 import click
 import random
 import logging
-import time
 import sys
 
 from libraries.display import Display
-from libraries.launch_control import LaunchControl
+from datalogger.libraries.launch_control import LaunchControl
 
 
 class StreamToLogger(object):

@@ -5,8 +5,8 @@ import logging
 import json
 import sys
 
-from libraries.datalogging import DataLogger
-from libraries.launch_control import LaunchControl
+from datalogger.libraries.datalogging import DataLogger
+from datalogger.libraries.launch_control import LaunchControl
 
 
 class StreamToLogger(object):
@@ -153,7 +153,7 @@ def main(freq, calibrate, remoteid, config, debug):
     sensors = load_config(config)
 
     if calibrate:
-        from libraries.qt_helper import QTHelper  # No need to import this if it's not required
+        from datalogger.libraries.qt_helper import QTHelper  # No need to import this if it's not required
 
         freq = 200
         data_logger = DataLogger(frequency=freq, sensors=sensors, maxruntime=0, raw_voltage=True)

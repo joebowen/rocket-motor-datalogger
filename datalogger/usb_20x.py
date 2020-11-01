@@ -15,15 +15,10 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import usb1
-import time
-import sys
 import logging
 from struct import *
-from datetime import datetime
-from mccUSB import *
+from datalogger.mccUSB import *
 
-from time import perf_counter
 
 class usb_20x(mccUSB):
     """

@@ -7,9 +7,9 @@ import pandas as pd
 from scipy import integrate
 
 from usb1 import USBError
-from mccUSB import OverrunError as mccOverrunError
+from datalogger.mccUSB import OverrunError as mccOverrunError
 
-from usb_20x import *
+from datalogger.usb_20x import *
 from matplotlib import pyplot as plt
 
 data_queue = queue.Queue(50)
