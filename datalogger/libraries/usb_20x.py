@@ -17,7 +17,7 @@
 
 import logging
 from struct import *
-from datalogger.libraries.mccUSB import *
+from libraries.mccUSB import *
 
 
 class usb_20x(mccUSB):
