@@ -36,16 +36,19 @@ sys.stdout = sl
 
 @click.command()
 @click.option('-d', '--debug', is_flag=True, help='Turn on debugging')
-def main(debug):
+@click.option('-r', '--remoteid', type=int, default=None, help='Remote ID')
+def main(debug, remoteid):
     if debug:
         logging.getLogger().setLevel(logging.DEBUG)
 
-    remote_id = random.randint(0, 9999)
-    print(f'remote id: {remote_id}')
+    if not remoteid:
+        remoteid = random.randint(0, 9999)
 
-    disp = Display(remote_id)
+    print(f'remote id: {remoteid}')
 
-    lc = LaunchControl(remote_id, disp)
+    disp = Display(remoteid)
+
+    lc = LaunchControl(remoteid, disp)
 
     disp.add_message('MAKE\nSAFE')
     lc.wait_for_safe()
