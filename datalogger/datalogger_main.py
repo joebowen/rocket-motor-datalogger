@@ -167,7 +167,7 @@ def main(freq, calibrate, remoteid, config, debug):
         from libraries.qt_helper import QTHelper  # No need to import this if it's not required
 
         freq = 200
-        data_logger = DataLogger(frequency=freq, sensors=sensors, maxruntime=0, raw_voltage=True)
+        data_logger = DataLogger(frequency=freq, sensors=sensors, maxruntime=0, raw_voltage=True, base_dir=base_dir)
         QTHelper(data_logger, raw_voltage=True)
         calibrate_mode(sensors, config, freq)
 
@@ -177,7 +177,7 @@ def main(freq, calibrate, remoteid, config, debug):
         while True:
             lc.wait_for_ready()
 
-            data_logger = DataLogger(frequency=freq, sensors=sensors, maxruntime=0, raw_voltage=False)
+            data_logger = DataLogger(frequency=freq, sensors=sensors, maxruntime=0, raw_voltage=False, base_dir=base_dir)
             data_logger.start()
 
             lc.wait_for_safe()
