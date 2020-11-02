@@ -40,7 +40,7 @@ class Camera:
         if self.camera.previewing:
             self.camera.stop_preview()
 
-    def toggle_preview(self):
+    def toggle_preview(self, key):
         if self.camera.previewing:
             self.camera.stop_preview()
         else:
