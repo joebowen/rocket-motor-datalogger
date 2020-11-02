@@ -93,8 +93,10 @@ class ConsumerThread(threading.Thread):
 
 
 class DataLogger:
-    def __init__(self, frequency, sensors, maxruntime=0,  raw_voltage=False):
+    def __init__(self, frequency, sensors, maxruntime=0,  raw_voltage=False, base_dir='/home/pi/Desktop/video'):
         self.usb20x = usb_204()
+
+        self.base_dir = base_dir
 
         self.raw_voltage = raw_voltage
 
@@ -333,25 +335,25 @@ class DataLogger:
         self.usb20x.AInScanStop()
 
     def get_data(self):
-        df = pd.read_csv(f'output_data/{self.timestamp_label}/converted_data.csv', index_col=0)
+        df = pd.read_csv(f'{self.base_dir}/{self.timestamp_label}/converted_data.csv', index_col=0)
 
         return df
 
     def get_raw_data(self):
-        df = pd.read_csv(f'output_data/{self.timestamp_label}/raw_data.csv', index_col=0)
+        df = pd.read_csv(f'{self.base_dir}/{self.timestamp_label}/raw_data.csv', index_col=0)
 
         return df
 
     def output_to_csv(self, write_mode='a'):
-        if not os.path.exists(f'output_data/{self.timestamp_label}'):
-            os.makedirs(f'output_data/{self.timestamp_label}')
+        if not os.path.exists(f'{self.base_dir}/{self.timestamp_label}'):
+            os.makedirs(f'{self.base_dir}/{self.timestamp_label}')
 
         header = False
         if write_mode == 'w':
             header = True
 
         self.data.to_csv(
-            f'output_data/{self.timestamp_label}/converted_data.csv',
+            f'{self.base_dir}/{self.timestamp_label}/converted_data.csv',
             index_label='seconds',
             mode=write_mode,
             header=header,
@@ -362,7 +364,7 @@ class DataLogger:
         self.data = pd.DataFrame(columns=self.sensor_names)
 
         self.raw_data.to_csv(
-            f'output_data/{self.timestamp_label}/raw_data.csv',
+            f'{self.base_dir}/{self.timestamp_label}/raw_data.csv',
             index_label='seconds',
             mode=write_mode,
             header=header,
@@ -506,7 +508,7 @@ class DataLogger:
 
         print(stats)
 
-        with open(f'output_data/{self.timestamp_label}/stats.txt', 'w') as f:
+        with open(f'{self.base_dir}/{self.timestamp_label}/stats.txt', 'w') as f:
             f.write(stats)
 
         for sensor_id, sensor in self.sensors.items():
@@ -542,12 +544,12 @@ class DataLogger:
 
             subplot.set_ylim([subplot_min, subplot_max])
 
-            fig.savefig(f'output_data/{self.timestamp_label}/{sensor["sensor_name"]}.pdf', dpi=5000, orientation='landscape', bbox_inches='tight')
+            fig.savefig(f'{self.base_dir}/{self.timestamp_label}/{sensor["sensor_name"]}.pdf', dpi=5000, orientation='landscape', bbox_inches='tight')
 
         plt.close('all')
 
         df_clean.to_csv(
-            f'output_data/{self.timestamp_label}/processed_data.csv',
+            f'{self.base_dir}/{self.timestamp_label}/processed_data.csv',
             index_label='seconds',
             mode='w',
             header=True,

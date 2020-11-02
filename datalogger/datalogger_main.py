@@ -4,6 +4,7 @@ import click
 import logging
 import json
 import sys
+import os
 
 from libraries.datalogging import DataLogger
 from libraries.launch_control import LaunchControl
@@ -151,6 +152,16 @@ def main(freq, calibrate, remoteid, config, debug):
         logging.getLogger().setLevel(logging.DEBUG)
 
     sensors = load_config(config)
+
+    media_dirs = os.listdir('/media/')
+    if media_dirs:
+        media_dirs = os.listdir('/media/pi/')
+        base_dir = f'/media/pi/{media_dirs[0]}'
+    else:
+        base_dir = '/home/pi/Desktop/data'
+
+    if not os.path.exists(base_dir):
+        os.makedirs(base_dir)
 
     if calibrate:
         from libraries.qt_helper import QTHelper  # No need to import this if it's not required
