@@ -1,5 +1,4 @@
-import sys
-import threading
+import keyboard
 import logging
 
 from picamera import PiCamera
@@ -8,7 +7,8 @@ from picamera import PiCamera
 class Camera:
     def __init__(self, base_dir='/home/pi/Desktop/video'):
         self.base_dir = base_dir
-        self.stop_preview_thread = None
+
+        self.keyboards = keyboard.on_press(self.toggle_preview)
 
         self.camera = PiCamera()
 
@@ -20,7 +20,7 @@ class Camera:
         self.camera.drc_strength = 'medium'
         self.camera.meter_mode = 'matrix'
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, type, value, traceback):
         self.camera.close()
 
     def start_recording(self, filename='test.h264'):
@@ -36,15 +36,12 @@ class Camera:
         self.camera.start_preview()
         self.camera.preview_fullscreen = True
 
-        self.stop_preview_thread = threading.Thread(target=self.stop_preview_watcher)
-        self.stop_preview_thread.daemon = True
-        self.stop_preview_thread.start()
-
-    def stop_preview_watcher(self):
-        while True:
-            if sys.stdin.read(1) == '\x1b':
-                self.stop_preview()
-
     def stop_preview(self):
         if self.camera.previewing:
             self.camera.stop_preview()
+
+    def toggle_preview(self):
+        if self.camera.previewing:
+            self.camera.stop_preview()
+        else:
+            self.start_preview()

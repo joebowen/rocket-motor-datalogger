@@ -6,3 +6,4 @@ gpiozero
 picamera
 goprocam
 bc
+keyboard
