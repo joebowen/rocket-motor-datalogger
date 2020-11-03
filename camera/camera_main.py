@@ -46,9 +46,8 @@ def main(prefix, debug, remoteid, nopreview):
 
     lc = LaunchControl(remoteid)
 
-    media_dirs = os.listdir('/media/')
+    media_dirs = os.listdir('/media/pi/')
     if media_dirs:
-        media_dirs = os.listdir('/media/pi/')
         base_dir = f'/media/pi/{media_dirs[0]}'
     else:
         base_dir = '/home/pi/Desktop/video'

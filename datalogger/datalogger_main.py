@@ -153,9 +153,8 @@ def main(freq, calibrate, remoteid, config, debug):
 
     sensors = load_config(config)
 
-    media_dirs = os.listdir('/media/')
+    media_dirs = os.listdir('/media/pi/')
     if media_dirs:
-        media_dirs = os.listdir('/media/pi/')
         base_dir = f'/media/pi/{media_dirs[0]}'
     else:
         base_dir = '/home/pi/Desktop/data'
