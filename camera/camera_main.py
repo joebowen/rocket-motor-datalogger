@@ -39,8 +39,9 @@ sys.stdout = sl
 @click.option('-p', '--prefix', type=str, default='pi-hq', help='Filename prefix')
 @click.option('-d', '--debug', is_flag=True, help='Turn on debugging')
 @click.option('-r', '--remoteid', type=int, default=None, help='Remote ID')
+@click.option('--nogopro', is_flag=True, help='Do not use a wireless gopro')
 @click.option('--nopreview', is_flag=True, help='Turn off the preview window')
-def main(prefix, debug, remoteid, nopreview):
+def main(prefix, debug, remoteid, nogopro, nopreview):
     if debug:
         logging.getLogger().setLevel(logging.DEBUG)
 
@@ -56,7 +57,9 @@ def main(prefix, debug, remoteid, nopreview):
         os.makedirs(base_dir)
 
     camera = Camera(base_dir)
-    gopro = GoPro(base_dir)
+
+    if not nogopro:
+        gopro = GoPro(base_dir)
 
     while True:
         if not nopreview:
@@ -69,13 +72,17 @@ def main(prefix, debug, remoteid, nopreview):
             camera.stop_preview()
 
         camera.start_recording(filename=f'{prefix}-{int(time.time())}.h264')
-        gopro.start_recording()
+
+        if not nogopro:
+            gopro.start_recording()
 
         if not lc.wait_for_safe():
             continue
 
         camera.stop_recording()
-        gopro.stop_recording()
+
+        if not nogopro:
+            gopro.stop_recording()
 
 
 if __name__ == '__main__':
