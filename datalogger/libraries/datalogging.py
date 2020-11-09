@@ -437,7 +437,7 @@ class DataLogger:
         return df_cleaned
 
     def _get_motor_impulse(self, df):
-        return integrate.trapz(df['Load Cell'].clip(min=0), dx=self.sample_time)
+        return integrate.trapz(df['Load Cell'].clip(lower=0), dx=self.sample_time)
 
     @staticmethod
     def _impulse_letter(impulse):
@@ -471,7 +471,7 @@ class DataLogger:
         return 'Unknown'
 
     def _avg_thrust(self, df):
-        return df['Load Cell'].clip(min=0).mean()
+        return df['Load Cell'].clip(lower=0).mean()
 
     def _burn_time(self, df):
         start_timestamp = self._detect_starting_timestamp(df)
