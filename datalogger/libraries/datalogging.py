@@ -345,8 +345,8 @@ class DataLogger:
         return df
 
     def output_to_csv(self, write_mode='a'):
-        if not os.path.exists(f'{self.base_dir}/{self.timestamp_label}'):
-            os.makedirs(f'{self.base_dir}/{self.timestamp_label}')
+        if not os.path.exists(f'{self.base_dir}/{self.timestamp_label}/'):
+            os.makedirs(f'{self.base_dir}/{self.timestamp_label}/')
 
         header = False
         if write_mode == 'w':
