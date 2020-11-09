@@ -6,7 +6,7 @@ from libraries.comms import Comms
 
 class LaunchControl:
     def __init__(self, remoteid):
-        self.current_state = 'safe'
+        self.current_state = 'stop'
 
         message_types = {
             'ready': self.receive_ready,
@@ -16,7 +16,9 @@ class LaunchControl:
             'fill-relay-on': self.receive_fill_relay_on,
             'fill-relay-off': self.receive_fill_relay_off,
             'dump-relay-on': self.receive_dump_relay_on,
-            'dump-relay-off': self.receive_dump_relay_off
+            'dump-relay-off': self.receive_dump_relay_off,
+            'start-cameras': self.receive_start_cameras,
+            'stop-cameras': self.receive_stop_cameras
         }
 
         if not remoteid:
@@ -24,27 +26,25 @@ class LaunchControl:
 
         self.comms = Comms(message_types, remoteid=remoteid)
 
-    def wait_for_ready(self):
-        logging.info('Waiting for the ready command to be sent.')
-        while self.current_state != 'ready':
+    def wait_for_start_cameras(self):
+        logging.info('Waiting for the start-cameras command to be sent.')
+        while self.current_state != 'start-cameras':
             time.sleep(0.1)
 
         return True
 
-    def wait_for_safe(self):
-        logging.info('Waiting for the safe command to be sent.')
-        while self.current_state != 'safe':
+    def wait_for_stop_cameras(self):
+        logging.info('Waiting for the stop-cameras command to be sent.')
+        while self.current_state != 'stop-cameras':
             time.sleep(0.1)
 
         return True
 
     def receive_ready(self, args=None):
         logging.info('Received ready signal')
-        self.current_state = 'ready'
 
     def receive_safe(self, args=None):
         logging.info('Received safe signal')
-        self.current_state = 'safe'
 
     def receive_launch(self, args=None):
         logging.info('Received launch signal')
@@ -63,3 +63,11 @@ class LaunchControl:
 
     def receive_dump_relay_off(self, args=None):
         logging.info('Received dump relay off signal')
+
+    def receive_start_cameras(self, args=None):
+        print('Received start cameras signal')
+        self.current_state = 'start-cameras'
+
+    def receive_stop_cameras(self, args=None):
+        print('Received stop cameras signal')
+        self.current_state = 'stop-cameras'

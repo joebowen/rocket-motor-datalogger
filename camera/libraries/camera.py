@@ -2,26 +2,30 @@ import keyboard
 import logging
 
 from picamera import PiCamera
+from pynput import mouse
 
 
 class Camera:
     def __init__(self, base_dir='/home/pi/Desktop/video'):
         self.base_dir = base_dir
 
-        self.keyboards = keyboard.on_press(self.toggle_preview)
+        self.keyboards = keyboard.on_press(self.keyboard_toggle_preview)
+        self.mouses = mouse.Listener(on_click=self.mouse_toggle_preview).start()
 
         self.camera = PiCamera()
 
-        self.camera.resolution = (1920, 1080)
+        self.camera.resolution = '1080p'
         self.camera.framerate = 30
         self.camera.sensor_mode = 1
         self.camera.shutter_speed = 0
         self.camera.exposure_mode = 'sports'
-        self.camera.drc_strength = 'medium'
+        self.camera.awb_mode = 'sunlight'
+        self.camera.drc_strength = 'off'
         self.camera.meter_mode = 'matrix'
 
     def __exit__(self, type, value, traceback):
         self.camera.close()
+        self.mouses.stop()
 
     def start_recording(self, filename='test.h264'):
         logging.info('Start recording...')
@@ -40,7 +44,13 @@ class Camera:
         if self.camera.previewing:
             self.camera.stop_preview()
 
-    def toggle_preview(self, key):
+    def keyboard_toggle_preview(self, key):
+        if self.camera.previewing:
+            self.camera.stop_preview()
+        else:
+            self.start_preview()
+
+    def mouse_toggle_preview(self, x, y, button, pressed):
         if self.camera.previewing:
             self.camera.stop_preview()
         else:

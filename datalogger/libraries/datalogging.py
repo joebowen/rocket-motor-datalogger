@@ -421,9 +421,9 @@ class DataLogger:
 
         return df
 
-    def _clean_up_test_data(self, df):
-        start_timestamp = self._detect_starting_timestamp(df) - 5
-        end_timestamp = self._detect_ending_timestamp(df) + 5
+    def _clean_up_test_data(self, df, offset_sec=0):
+        start_timestamp = self._detect_starting_timestamp(df) - offset_sec
+        end_timestamp = self._detect_ending_timestamp(df) + offset_sec
 
         df_zeroed = self._zero_load_cell(df)
 
@@ -437,7 +437,7 @@ class DataLogger:
         return df_cleaned
 
     def _get_motor_impulse(self, df):
-        return integrate.trapz(df['Load Cell'], dx=self.sample_time)
+        return integrate.trapz(df['Load Cell'].clip(min=0), dx=self.sample_time)
 
     @staticmethod
     def _impulse_letter(impulse):
@@ -468,16 +468,10 @@ class DataLogger:
             if impulse > max_impulse:
                 return motor_codes[index - 1][0]
 
-        return '+P'
+        return 'Unknown'
 
     def _avg_thrust(self, df):
-        start_timestamp = self._detect_starting_timestamp(df)
-        end_timestamp = self._detect_ending_timestamp(df)
-
-        df_reduced = df.loc[df.index > start_timestamp]
-        df_cleaned = df_reduced.loc[df_reduced.index < end_timestamp]
-
-        return df_cleaned['Load Cell'].mean()
+        return df['Load Cell'].clip(min=0).mean()
 
     def _burn_time(self, df):
         start_timestamp = self._detect_starting_timestamp(df)
@@ -510,6 +504,8 @@ class DataLogger:
 
         with open(f'{self.base_dir}/{self.timestamp_label}/stats.txt', 'w') as f:
             f.write(stats)
+
+        df_clean = self._clean_up_test_data(df, offset_sec=5)
 
         for sensor_id, sensor in self.sensors.items():
             fig = plt.figure()

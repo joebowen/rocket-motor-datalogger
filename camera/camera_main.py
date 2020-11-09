@@ -65,7 +65,7 @@ def main(prefix, debug, remoteid, nogopro, nopreview):
         if not nopreview:
             camera.start_preview()
 
-        if not lc.wait_for_ready():
+        if not lc.wait_for_start_cameras():
             continue
 
         if not nopreview:
@@ -76,7 +76,7 @@ def main(prefix, debug, remoteid, nogopro, nopreview):
         if not nogopro:
             gopro.start_recording()
 
-        if not lc.wait_for_safe():
+        if not lc.wait_for_stop_cameras():
             continue
 
         camera.stop_recording()

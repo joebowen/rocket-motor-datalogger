@@ -1,5 +1,3 @@
-import time
-
 from libraries.gpio import GPIO
 from libraries.comms import Comms
 
@@ -20,7 +18,9 @@ class LaunchControl:
             'fill-relay-on': self.receive_fill_relay_on,
             'fill-relay-off': self.receive_fill_relay_off,
             'dump-relay-on': self.receive_dump_relay_on,
-            'dump-relay-off': self.receive_dump_relay_off
+            'dump-relay-off': self.receive_dump_relay_off,
+            'start-cameras': self.receive_start_cameras,
+            'stop-cameras': self.receive_stop_cameras
         }
 
         self.display = display
@@ -40,9 +40,10 @@ class LaunchControl:
         return is_ready
 
     def send_ready(self):
-        message_id = self.comms.send_message(command='ready')
+        message_id1 = self.comms.send_message(command='start-cameras')
+        message_id2 = self.comms.send_message(command='ready')
 
-        while not self.comms.wait_for_ack(message_id):
+        while not self.comms.wait_for_ack(message_id1) and not self.comms.wait_for_ack(message_id2):
             if not self.gpio.is_button_on('ready'):
                 self.send_safe()
                 return False
@@ -56,6 +57,7 @@ class LaunchControl:
         self.send_safe()
 
     def send_safe(self):
+        self.comms.send_message(command='stop-cameras')
         self.comms.send_message(command='safe')
         print('Safe...')
         self.display.add_message('SAFE')
@@ -91,15 +93,27 @@ class LaunchControl:
             self.display.add_message('LAUNCH')
             self.current_state = 'launch'
 
-            start_time = time.time()
-            while self.current_state == 'launch':
-                if time.time() > start_time + timeout:
-                    break
+            while self.gpio.is_button_on('launch'):
+                if not self.gpio.is_button_on('ready'):
+                    self.send_safe()
+                    return False
+
+            self.send_post_launch()
 
         return is_launch
 
     def send_launch(self):
         message_id = self.comms.send_message(command='launch')
+
+        while not self.comms.wait_for_ack(message_id):
+            if not self.gpio.is_button_on('ready'):
+                self.send_safe()
+                return False
+
+        return True
+
+    def send_post_launch(self):
+        message_id = self.comms.send_message(command='post-launch')
 
         while not self.comms.wait_for_ack(message_id):
             if not self.gpio.is_button_on('ready'):
@@ -148,3 +162,9 @@ class LaunchControl:
 
     def receive_dump_relay_off(self, args=None):
         print('Received dump relay off signal')
+
+    def receive_start_cameras(self, args=None):
+        print('Received start cameras signal')
+
+    def receive_stop_cameras(self, args=None):
+        print('Received stop cameras signal')
