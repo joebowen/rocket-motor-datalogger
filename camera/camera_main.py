@@ -49,9 +49,9 @@ def main(prefix, debug, remoteid, nogopro, nopreview):
 
     media_dirs = os.listdir('/media/pi/')
     if media_dirs:
-        base_dir = f'/media/pi/{media_dirs[0]}'
+        base_dir = f'/media/pi/{media_dirs[0]}/'
     else:
-        base_dir = '/home/pi/Desktop/video'
+        base_dir = '/home/pi/Desktop/video/'
 
     if not os.path.exists(base_dir):
         os.makedirs(base_dir)
