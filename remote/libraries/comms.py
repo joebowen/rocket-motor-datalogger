@@ -22,7 +22,7 @@ class Comms:
 
         self.wait_till_connected()
 
-        self.interface.setOwner(long_name='Remote', short_name='R')
+        # self.interface.setOwner(long_name='Remote', short_name='R')
 
     def set_config(self):
 
