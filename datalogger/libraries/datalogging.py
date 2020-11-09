@@ -164,7 +164,7 @@ class DataLogger:
         else:
             logging.info('Collecting data until green switch is turned off or code is exited...')
 
-        self.timestamp_label = datetime.now().strftime('%y-%b-%d %H:%M:%S')
+        self.timestamp_label = datetime.now().strftime('%y-%b-%d_%H:%M:%S')
         self.restart_timestamp = perf_counter()
         self.timestamp = 0
         self.transfer_count = 0
