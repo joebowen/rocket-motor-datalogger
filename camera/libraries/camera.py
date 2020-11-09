@@ -51,7 +51,8 @@ class Camera:
             self.start_preview()
 
     def mouse_toggle_preview(self, x, y, button, pressed):
-        if self.camera.previewing:
-            self.camera.stop_preview()
-        else:
-            self.start_preview()
+        if pressed:
+            if self.camera.previewing:
+                self.camera.stop_preview()
+            else:
+                self.start_preview()
