@@ -22,6 +22,8 @@ class Comms:
 
         self.wait_till_connected()
 
+        self.interface.setOwner(long_name='BaseStation', short_name='BS')
+
     def set_config(self):
         self.interface.radioConfig.preferences.is_low_power = False
         self.interface.radioConfig.preferences.is_router = True

@@ -20,6 +20,8 @@ class Comms:
 
         self.interface = meshtastic.SerialInterface()
 
+        self.interface.setOwner(long_name='Camera', short_name='CAM')
+
         self.wait_till_connected()
 
     def set_config(self):
