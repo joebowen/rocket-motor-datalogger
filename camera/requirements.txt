@@ -8,3 +8,5 @@ goprocam
 bc
 keyboard
 pynput
+adafruit-circuitpython-pca9685
+adafruit-circuitpython-servokit
