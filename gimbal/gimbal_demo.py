@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import time
 from adafruit_servokit import ServoKit
 
