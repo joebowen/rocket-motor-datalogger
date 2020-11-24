@@ -19,7 +19,7 @@ def main():
 
         gimbal.pitch_up(percentage=100)
         time.sleep(1)
-        gimbal.yaw_to_angle(angle=70)
+        gimbal.yaw_to_angle(angle=50)
         time.sleep(4)
         gimbal.pitch_down(percentage=100)
         time.sleep(3)
