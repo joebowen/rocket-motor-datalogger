@@ -21,3 +21,7 @@ def main():
         time.sleep(3)
         gimbal.pitch_down(percentage=100)
         time.sleep(3)
+
+
+if __name__ == "__main__":
+    main()
