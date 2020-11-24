@@ -1,25 +1,23 @@
 #!/usr/bin/python3
 
 import time
-from adafruit_servokit import ServoKit
 
-kit = ServoKit(channels=16)
+from libraries.gimbal import Gimbal
 
-kit.servo[14].angle = 0
-kit.servo[15].angle = 90
-time.sleep(5)
-while True:
-    kit.servo[15].angle = 90
-    time.sleep(3)
-    kit.servo[15].angle = 110
-    time.sleep(3)
-    kit.servo[15].angle = 70
-    time.sleep(3)
-    kit.servo[14].angle = 0
-    time.sleep(1)
-    kit.servo[14].angle = 180
-    time.sleep(.5)
-    kit.servo[14].angle = 180
-    time.sleep(3)
-    kit.servo[14].angle = 0
-    time.sleep(3)
+
+def main():
+    gimbal = Gimbal()
+
+    time.sleep(5)
+    while True:
+        gimbal.yaw_to_angle(angle=110)
+        time.sleep(3)
+        gimbal.yaw_to_angle(angle=70)
+        time.sleep(3)
+        gimbal.yaw_to_angle(angle=90)
+        time.sleep(3)
+
+        gimbal.pitch_up(percentage=100)
+        time.sleep(3)
+        gimbal.pitch_down(percentage=100)
+        time.sleep(3)
