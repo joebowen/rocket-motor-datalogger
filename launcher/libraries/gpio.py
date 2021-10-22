@@ -1,0 +1,21 @@
+from gpiozero import LED
+
+
+class GPIO:
+    def __init__(self):
+        self.relays = {
+            'fill_solenoid': LED(19, active_high=False),
+            'dump_solenoid': LED(13, active_high=False),
+            'ignition': LED(6, active_high=False),
+            'warn_lights': LED(26, active_high=False)
+        }
+
+    def relay_off(self, index):
+        self.relays[index].off()
+
+    def relay_on(self, index):
+        self.relays[index].on()
+
+    def all_relays_off(self):
+        for name in self.relays.keys():
+            self.relay_off(name)

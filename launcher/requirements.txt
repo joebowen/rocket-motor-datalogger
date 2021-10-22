@@ -1,0 +1,5 @@
+click
+multiprocessing_logging
+scipy
+meshtastic
+gpiozero
