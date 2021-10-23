@@ -24,6 +24,8 @@ class Comms:
 
         # self.interface.setOwner(long_name='BaseStation', short_name='BS')
 
+        self.set_config()
+
     def set_config(self):
         self.interface.localNode.radioConfig.preferences.is_low_power = False
         self.interface.localNode.radioConfig.preferences.is_router = False
