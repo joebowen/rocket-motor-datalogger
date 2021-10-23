@@ -24,23 +24,31 @@ class Comms:
 
         # self.interface.setOwner(long_name='BaseStation', short_name='BS')
 
+        self.set_config()
+
     def set_config(self):
-        self.interface.radioConfig.preferences.is_low_power = False
-        self.interface.radioConfig.preferences.is_router = False
+        self.interface.localNode.radioConfig.preferences.is_low_power = False
+        self.interface.localNode.radioConfig.preferences.is_router = False
 
-        self.interface.radioConfig.channel_settings.modem_config = 1
+        # self.interface.localNode.radioConfig.channel_settings.modem_config = 3
 
-        self.interface.radioConfig.preferences.position_broadcast_secs = 900
-        self.interface.radioConfig.preferences.send_owner_interval = 4
-        self.interface.radioConfig.preferences.wait_bluetooth_secs = 120
-        self.interface.radioConfig.preferences.screen_on_secs = 300
-        self.interface.radioConfig.preferences.phone_timeout_secs = 900
-        self.interface.radioConfig.preferences.phone_sds_timeout_sec = 7200
-        self.interface.radioConfig.preferences.mesh_sds_timeout_secs = 7200
-        self.interface.radioConfig.preferences.sds_secs = 31536000
-        self.interface.radioConfig.preferences.ls_secs = 3600
+        self.interface.localNode.radioConfig.preferences.position_broadcast_secs = 1
+        # self.interface.localNode.radioConfig.preferences.gps_attempt_time = 300
+        # self.interface.localNode.radioConfig.preferences.gps_update_interval = 5
+        self.interface.localNode.radioConfig.preferences.send_owner_interval = 1
+        self.interface.localNode.radioConfig.preferences.wait_bluetooth_secs = 30
+        self.interface.localNode.radioConfig.preferences.screen_on_secs = 300
+        self.interface.localNode.radioConfig.preferences.phone_timeout_secs = 30
+        self.interface.localNode.radioConfig.preferences.phone_sds_timeout_sec = 7200
+        self.interface.localNode.radioConfig.preferences.mesh_sds_timeout_secs = 7200
+        self.interface.localNode.radioConfig.preferences.sds_secs = 31536000
+        self.interface.localNode.radioConfig.preferences.ls_secs = 3600
 
-        self.interface.writeConfig()
+        # self.interface.localNode.radioConfig.channel_settings.tx_power = 100
+
+        self.interface.localNode.writeConfig()
+
+        print('Wrote out config')
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.interface.close()
