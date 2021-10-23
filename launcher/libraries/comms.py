@@ -76,8 +76,8 @@ class Comms:
         if 'decoded' in packet and 'successId' in packet['decoded']:
             self.success_ids.append(packet['decoded']['successId'])
 
-        if 'decoded' in packet and 'data' in packet['decoded'] and 'text' in packet['decoded']['data']:
-            self.parse_message(packet['decoded']['data']['text'])
+        if 'decoded' in packet and 'text' in packet['decoded']:
+            self.parse_message(packet['decoded']['text'])
 
     def send_message(self, command, args=None, wait_for_ack=False):
         message = {
