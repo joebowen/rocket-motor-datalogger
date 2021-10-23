@@ -24,8 +24,6 @@ class Comms:
 
         # self.interface.setOwner(long_name='BaseStation', short_name='BS')
 
-        self.set_config()
-
     def set_config(self):
         self.interface.localNode.radioConfig.preferences.is_low_power = False
         self.interface.localNode.radioConfig.preferences.is_router = False
@@ -35,10 +33,10 @@ class Comms:
         self.interface.localNode.radioConfig.preferences.position_broadcast_secs = 1
         # self.interface.localNode.radioConfig.preferences.gps_attempt_time = 300
         # self.interface.localNode.radioConfig.preferences.gps_update_interval = 5
-        self.interface.localNode.radioConfig.preferences.send_owner_interval = 1
-        self.interface.localNode.radioConfig.preferences.wait_bluetooth_secs = 30
+        self.interface.localNode.radioConfig.preferences.send_owner_interval = 5
+        self.interface.localNode.radioConfig.preferences.wait_bluetooth_secs = 120
         self.interface.localNode.radioConfig.preferences.screen_on_secs = 300
-        self.interface.localNode.radioConfig.preferences.phone_timeout_secs = 30
+        self.interface.localNode.radioConfig.preferences.phone_timeout_secs = 900
         self.interface.localNode.radioConfig.preferences.phone_sds_timeout_sec = 7200
         self.interface.localNode.radioConfig.preferences.mesh_sds_timeout_secs = 7200
         self.interface.localNode.radioConfig.preferences.sds_secs = 31536000
