@@ -1,6 +1,6 @@
 import time
-# import threading
-# import queue
+import threading
+import queue
 
 from libraries.gpio import GPIO
 from libraries.comms import Comms
