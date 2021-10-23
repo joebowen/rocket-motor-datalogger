@@ -67,8 +67,8 @@ class LaunchControl:
         message_id = self.comms.send_message(command='safe')
         self.comms.send_message(command='stop-cameras')
 
-        while not self.comms.wait_for_ack(message_id, timeout=10):
-            message_id = self.comms.send_message(command='safe')
+        # while not self.comms.wait_for_ack(message_id, timeout=10):
+        #     message_id = self.comms.send_message(command='safe')
 
         print('Safe...')
         self.display.add_message('SAFE')
