@@ -62,7 +62,7 @@ class Comms:
     def on_connection(self, interface, topic=pub.AUTO_TOPIC):
         self.connected = True
 
-    def wait_for_ack(self, message_id, timeout=1):
+    def wait_for_ack(self, message_ids, timeout=1):
         message = [
             '.',
             '..',
@@ -72,7 +72,7 @@ class Comms:
         start_time = time.time()
 
         count = 0
-        while message_id not in self.success_ids:
+        while all(message_id not in self.success_ids for message_id in message_ids):
             time.sleep(0.01)
 
             count += 1

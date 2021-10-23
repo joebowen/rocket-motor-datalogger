@@ -46,10 +46,10 @@ class LaunchControl:
         return True
 
     def send_ready(self):
-        message_id = self.comms.send_message(command='ready')
+        message_ids = [self.comms.send_message(command='ready')]
 
-        while not self.comms.wait_for_ack(message_id, timeout=10):
-            message_id = self.comms.send_message(command='ready')
+        while not self.comms.wait_for_ack(message_ids, timeout=1):
+            message_ids.append(self.comms.send_message(command='ready'))
 
             if not self.gpio.is_button_on('ready'):
                 self.send_safe()
