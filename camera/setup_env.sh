@@ -5,4 +5,4 @@ sudo chmod +x /usr/local/bin/gopro
 
 sudo apt install -y mencoder libmagick++-dev
 
-sudo pip3 install --user --no-input --upgrade -r requirements.txt
+pip3 install --user --no-input --upgrade -r requirements.txt

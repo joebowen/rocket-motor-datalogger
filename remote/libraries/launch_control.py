@@ -30,6 +30,7 @@ class LaunchControl:
         print(f'Waiting for the ready switch to be turned on.')
         self.gpio.wait_for_button('ready')
 
+        self.start_cameras()
         is_ready = self.send_ready()
 
         if is_ready:
@@ -39,11 +40,15 @@ class LaunchControl:
 
         return is_ready
 
-    def send_ready(self):
-        message_id1 = self.comms.send_message(command='start-cameras')
-        message_id2 = self.comms.send_message(command='ready')
+    def start_cameras(self):
+        self.comms.send_message(command='start-cameras')
 
-        while not self.comms.wait_for_ack(message_id1) and not self.comms.wait_for_ack(message_id2):
+        return True
+
+    def send_ready(self):
+        message_id = self.comms.send_message(command='ready')
+
+        while not self.comms.wait_for_ack(message_id):
             if not self.gpio.is_button_on('ready'):
                 self.send_safe()
                 return False
@@ -57,8 +62,8 @@ class LaunchControl:
         self.send_safe()
 
     def send_safe(self):
-        self.comms.send_message(command='stop-cameras')
         self.comms.send_message(command='safe')
+        self.comms.send_message(command='stop-cameras')
         print('Safe...')
         self.display.add_message('SAFE')
         self.current_state = 'safe'
