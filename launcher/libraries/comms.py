@@ -54,12 +54,14 @@ class Comms:
     def on_connection(self, interface, topic=pub.AUTO_TOPIC):
         self.connected = True
 
-    def wait_for_ack(self, message_id):
+    def wait_for_ack(self, message_id, timeout=1):
         message = [
             '.',
             '..',
             '...'
         ]
+
+        start_time = time.time()
 
         count = 0
         while message_id not in self.success_ids:
@@ -69,6 +71,11 @@ class Comms:
             if count % 2000:
                 if self.display:
                     self.display.add_message(message[count % 3])
+
+            if time.time() > start_time + timeout:
+                return False
+
+        return True
 
     def on_receive(self, packet, interface):  # called when a packet arrives
         logging.debug(f'Received: {packet}')

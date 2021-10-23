@@ -22,10 +22,9 @@ class Comms:
 
         self.wait_till_connected()
 
-        # self.interface.setOwner(long_name='Remote', short_name='R')
+        # self.interface.setOwner(long_name='BaseStation', short_name='BS')
 
     def set_config(self):
-
         self.interface.radioConfig.preferences.is_low_power = False
         self.interface.radioConfig.preferences.is_router = True
 
@@ -84,10 +83,10 @@ class Comms:
         if 'decoded' in packet and 'successId' in packet['decoded']:
             self.success_ids.append(packet['decoded']['successId'])
 
-        if 'decoded' in packet and 'data' in packet['decoded'] and 'text' in packet['decoded']['data']:
-            self.parse_message(packet['decoded']['data']['text'])
+        if 'decoded' in packet and 'text' in packet['decoded']:
+            self.parse_message(packet['decoded']['text'])
 
-    def send_message(self, command, args=None):
+    def send_message(self, command, args=None, wait_for_ack=False):
         message = {
             'remoteid': self.remoteid,
             'command': command
@@ -101,6 +100,9 @@ class Comms:
             wantAck=True,
             wantResponse=True
         ).id
+
+        if wait_for_ack:
+            self.wait_for_ack(message_id)
 
         return message_id
 
