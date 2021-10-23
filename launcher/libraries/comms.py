@@ -26,7 +26,7 @@ class Comms:
 
     def set_config(self):
         self.interface.radioConfig.preferences.is_low_power = False
-        self.interface.radioConfig.preferences.is_router = True
+        self.interface.radioConfig.preferences.is_router = False
 
         self.interface.radioConfig.channel_settings.modem_config = 1
 
