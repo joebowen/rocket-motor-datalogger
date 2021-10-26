@@ -26,7 +26,7 @@ SetupStartUp()
 PythonFile=$1
 RemoteID=$2
 
-cat <<EOF >/home/pi/Desktop/start.sh
+cat <<EOF > /home/pi/Desktop/start.sh
 #!/bin/bash
 $(cd /home/pi/Desktop/rocket-motor-datalogger/ && ./"${PythonFile}" -r "${RemoteID}")
 EOF
@@ -34,7 +34,7 @@ EOF
 chmod +x /home/pi/Desktop/start.sh
 
 cronjob="@reboot /home/pi/Desktop/start.sh >>/home/pi/Desktop/logger.log 2>&1"
-(crontab -u p -l; echo "$cronjob" ) | crontab -u pi -
+(crontab -u pi -l; echo "$cronjob" ) | crontab -u pi -
 }
 
 ############################################################
