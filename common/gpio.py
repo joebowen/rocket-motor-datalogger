@@ -10,8 +10,9 @@ class GPIO:
         self.relays[relay_name].on()
 
     def all_relays_off(self):
-        for name in self.relays.keys():
-            self.relay_off(name)
+        if self.relays:
+            for name in self.relays.keys():
+                self.relay_off(name)
 
     def is_button_on(self, button_name):
         return self.buttons[button_name].is_active
