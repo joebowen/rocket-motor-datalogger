@@ -6,7 +6,7 @@ import logging
 import sys
 
 from remote.libraries.display import Display
-from remote.libraries.launch_control import LaunchControl
+from common.launch_control import LaunchControl
 
 
 class StreamToLogger(object):

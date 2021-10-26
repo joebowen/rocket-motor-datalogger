@@ -7,7 +7,7 @@ import sys
 import os
 
 from datalogger.libraries.datalogging import DataLogger
-from datalogger.libraries.launch_control import LaunchControl
+from common.launch_control import LaunchControl
 
 
 class StreamToLogger(object):

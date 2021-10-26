@@ -4,7 +4,7 @@ import click
 import logging
 import sys
 
-from launcher.libraries.launch_control import LaunchControl
+from common.launch_control import LaunchControl
 
 
 class StreamToLogger(object):
