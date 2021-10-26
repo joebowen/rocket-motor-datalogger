@@ -5,8 +5,8 @@ from common.comms import Comms
 
 
 class LaunchControl:
-    def __init__(self, remoteid, display=None):
-        self.gpio = GPIO()
+    def __init__(self, remoteid, display=None, relays=None, buttons=None):
+        self.gpio = GPIO(relays=relays, buttons=buttons)
         self.gpio.all_relays_off()
         self.current_state = 'safe'
         self.filling = False

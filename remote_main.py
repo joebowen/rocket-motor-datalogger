@@ -5,6 +5,8 @@ import random
 import logging
 import sys
 
+from gpiozero import Button
+
 from remote.libraries.display import Display
 from common.launch_control import LaunchControl
 
@@ -47,7 +49,14 @@ def main(debug, remoteid):
 
     disp = Display(remoteid)
 
-    lc = LaunchControl(remoteid, disp)
+    buttons = {
+        'ready': Button(2),
+        'launch': Button(3),
+        'fill': Button(5),
+        'dump': Button(6)
+    }
+
+    lc = LaunchControl(remoteid, display=disp, buttons=buttons)
 
     disp.add_message('MAKE\nSAFE')
     lc.remote_wait_for_safe()

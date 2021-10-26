@@ -4,6 +4,8 @@ import click
 import logging
 import sys
 
+from gpiozero import LED
+
 from common.launch_control import LaunchControl
 
 
@@ -38,7 +40,14 @@ def main(remoteid, debug):
     if debug:
         logging.getLogger().setLevel(logging.DEBUG)
 
-    lc = LaunchControl(remoteid)
+    relays = {
+        'fill_solenoid': LED(19, active_high=False),
+        'dump_solenoid': LED(13, active_high=False),
+        'ignition': LED(6, active_high=False),
+        'warn_lights': LED(26, active_high=False)
+    }
+
+    lc = LaunchControl(remoteid, relays=relays)
 
     while True:
         lc.wait_for_ready()

@@ -6,6 +6,8 @@ import json
 import sys
 import os
 
+from gpiozero import LED
+
 from datalogger.libraries.datalogging import DataLogger
 from common.launch_control import LaunchControl
 
@@ -171,7 +173,14 @@ def main(freq, calibrate, remoteid, config, debug):
         calibrate_mode(sensors, config, freq)
 
     else:
-        lc = LaunchControl(remoteid)
+        relays = {
+            'fill_solenoid': LED(20, active_high=False),
+            'dump_solenoid': LED(21, active_high=False),
+            'ignition': LED(16, active_high=False),
+            'warn_lights': LED(12, active_high=False)
+        }
+
+        lc = LaunchControl(remoteid, relays=relays)
 
         while True:
             lc.wait_for_ready()
