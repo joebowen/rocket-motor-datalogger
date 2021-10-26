@@ -26,10 +26,11 @@ SetupStartUp()
 PythonFile=$1
 RemoteID=$2
 
-cat <<\EOT > /home/pi/Desktop/start.sh
+cat <<EOF > /home/pi/Desktop/start.sh
 #!/bin/bash
-$(cd /home/pi/Desktop/rocket-motor-datalogger/ && ./"${PythonFile}" -r "${RemoteID}")
-EOT
+cd /home/pi/Desktop/rocket-motor-datalogger/
+./"${PythonFile}" -r "${RemoteID}"
+EOF
 
 chmod +x /home/pi/Desktop/start.sh
 
