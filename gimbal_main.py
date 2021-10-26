@@ -2,7 +2,7 @@
 
 import time
 
-from libraries.gimbal import Gimbal
+from gimbal.libraries.gimbal import Gimbal
 
 
 def main():

@@ -1,17 +1,15 @@
 #!/usr/bin/python3
 
 import click
-import random
 import logging
 import sys
 
-from libraries.display import Display
-from libraries.launch_control import LaunchControl
+from launcher.libraries.launch_control import LaunchControl
 
 
 class StreamToLogger(object):
-    ''' Fake file-like stream object that redirects writes to a logger instance.
-    '''
+    """ Fake file-like stream object that redirects writes to a logger instance.
+    """
 
     def __init__(self, logger, log_level=logging.INFO):
         self.logger = logger
@@ -34,30 +32,18 @@ sys.stdout = sl
 
 
 @click.command()
-@click.option('-d', '--debug', is_flag=True, help='Turn on debugging')
 @click.option('-r', '--remoteid', type=int, default=None, help='Remote ID')
-def main(debug, remoteid):
+@click.option('-d', '--debug', is_flag=True, help='Turn on debugging')
+def main(remoteid, debug):
     if debug:
         logging.getLogger().setLevel(logging.DEBUG)
 
-    if not remoteid:
-        remoteid = random.randint(0, 9999)
-
-    print(f'remote id: {remoteid}')
-
-    disp = Display(remoteid)
-
-    lc = LaunchControl(remoteid, disp)
-
-    disp.add_message('MAKE\nSAFE')
-    lc.wait_for_safe()
+    lc = LaunchControl(remoteid)
 
     while True:
-        if not lc.wait_for_ready():
-            continue
+        lc.wait_for_ready()
 
-        if not lc.wait_for_launch():
-            continue
+        lc.wait_for_safe()
 
 
 if __name__ == '__main__':

@@ -22,8 +22,6 @@ class Comms:
 
         self.wait_till_connected()
 
-        # self.interface.setOwner(long_name='BaseStation', short_name='BS')
-
         self.set_config()
 
     def set_config(self):

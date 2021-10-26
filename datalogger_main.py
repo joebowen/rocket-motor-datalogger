@@ -6,8 +6,8 @@ import json
 import sys
 import os
 
-from libraries.datalogging import DataLogger
-from libraries.launch_control import LaunchControl
+from datalogger.libraries.datalogging import DataLogger
+from datalogger.libraries.launch_control import LaunchControl
 
 
 class StreamToLogger(object):
@@ -145,7 +145,7 @@ def calibrate_mode(sensors, config, freq):
 @click.option('-f', '--freq', type=int, default=1000, help='Data Logging Frequency - Default: 1000 Hz')
 @click.option('-c', '--calibrate', is_flag=True, help='Use this mode to calibrate the channels')
 @click.option('-r', '--remoteid', type=int, default=None, help='Remote ID')
-@click.option('--config', type=str, default='sensors.json', help='Config file - Default: sensors.json')
+@click.option('--config', type=str, default='datalogger/sensors.json', help='Config file - Default: datalogger/sensors.json')
 @click.option('-d', '--debug', is_flag=True, help='Turn on debugging')
 def main(freq, calibrate, remoteid, config, debug):
     if debug:
@@ -163,7 +163,7 @@ def main(freq, calibrate, remoteid, config, debug):
         os.makedirs(base_dir)
 
     if calibrate:
-        from libraries.qt_helper import QTHelper  # No need to import this if it's not required
+        from datalogger.libraries.qt_helper import QTHelper  # No need to import this if it's not required
 
         freq = 200
         data_logger = DataLogger(frequency=freq, sensors=sensors, maxruntime=0, raw_voltage=True, base_dir=base_dir)

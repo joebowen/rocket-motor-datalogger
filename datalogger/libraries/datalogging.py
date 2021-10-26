@@ -11,9 +11,9 @@ from time import sleep, perf_counter
 from datetime import datetime
 
 from usb1 import USBError
-from libraries.mccUSB import OverrunError as mccOverrunError
+from datalogger.libraries.mccUSB import OverrunError as mccOverrunError
 
-from libraries.usb_20x import *
+from datalogger.libraries.usb_20x import *
 from matplotlib import pyplot as plt
 
 data_queue = queue.Queue(50)

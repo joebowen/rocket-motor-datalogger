@@ -6,14 +6,14 @@ import time
 import sys
 import os
 
-from libraries.gopro import GoPro
-from libraries.camera import Camera
-from libraries.launch_control import LaunchControl
+from camera.libraries.gopro import GoPro
+from camera.libraries.camera import Camera
+from common.launch_control import LaunchControl
 
 
 class StreamToLogger(object):
-    ''' Fake file-like stream object that redirects writes to a logger instance.
-    '''
+    """ Fake file-like stream object that redirects writes to a logger instance.
+    """
 
     def __init__(self, logger, log_level=logging.INFO):
         self.logger = logger

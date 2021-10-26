@@ -51,7 +51,7 @@ Camera()
 
   pip3 install --user --no-input --upgrade -r camera/requirements.txt
 
-  SetupStartUp "camera/camera_main.py" "${RemoteID}"
+  SetupStartUp "ccamera_main.py" "${RemoteID}"
 }
 
 ############################################################
@@ -65,7 +65,7 @@ DataLogger()
   pip3 install --user --no-input --upgrade setuptools wheel pip
   pip3 install --user --no-input --upgrade -r datalogger/requirements.txt
 
-  SetupStartUp "datalogger/datalogger_main.py" "${RemoteID}"
+  SetupStartUp "datalogger_main.py" "${RemoteID}"
 }
 
 ############################################################
@@ -78,7 +78,7 @@ Launcher()
   pip3 install --user --no-input --upgrade setuptools wheel pip
   pip3 install --user --no-input --upgrade -r launcher/requirements.txt
 
-  SetupStartUp "launcher/launcher_main.py" "${RemoteID}"
+  SetupStartUp "launcher_main.py" "${RemoteID}"
 }
 
 ############################################################
@@ -90,7 +90,7 @@ Remote()
 
   pip3 install --user --no-input --upgrade -r remote/requirements.txt
 
-  SetupStartUp "remote/remote_main.py" "${RemoteID}"
+  SetupStartUp "remote_main.py" "${RemoteID}"
 }
 
 ############################################################
@@ -100,7 +100,7 @@ Gimbal()
 {
   RemoteID=$1
 
-  SetupStartUp "gimbal/gimbal_main.py" "${RemoteID}"
+  SetupStartUp "gimbal_main.py" "${RemoteID}"
 }
 
 ############################################################

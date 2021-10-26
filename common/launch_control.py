@@ -1,11 +1,13 @@
-from libraries.gpio import GPIO
-from libraries.comms import Comms
+import time
+
+from common.gpio import GPIO
+from common.comms import Comms
 
 
 class LaunchControl:
-    def __init__(self, remoteid, display):
+    def __init__(self, remoteid, display=None):
         self.gpio = GPIO()
-        self.receive_safe()
+        self.gpio.all_relays_off()
         self.current_state = 'safe'
         self.filling = False
         self.dumping = False
@@ -26,11 +28,35 @@ class LaunchControl:
         self.display = display
         self.comms = Comms(message_types, remoteid=remoteid, display=display)
 
+    def wait_for_start_cameras(self):
+        print('Waiting for the start-cameras command to be sent.')
+        while self.current_state != 'start-cameras':
+            time.sleep(0.1)
+
+        return True
+
+    def wait_for_stop_cameras(self):
+        print('Waiting for the stop-cameras command to be sent.')
+        while self.current_state != 'stop-cameras':
+            time.sleep(0.1)
+
+        return True
+
     def wait_for_ready(self):
+        print('Waiting for the ready command to be sent.')
+        while self.current_state != 'ready':
+            time.sleep(0.01)
+
+    def wait_for_safe(self):
+        print('Waiting for the safe command to be sent.')
+        while self.current_state != 'safe':
+            time.sleep(0.01)
+    
+    def remote_wait_for_ready(self):
         print(f'Waiting for the ready switch to be turned on.')
         self.gpio.wait_for_button('ready')
 
-        self.start_cameras()
+        self.send_start_cameras()
         is_ready = self.send_ready()
 
         if is_ready:
@@ -40,7 +66,7 @@ class LaunchControl:
 
         return is_ready
 
-    def start_cameras(self):
+    def send_start_cameras(self):
         self.comms.send_message(command='start-cameras')
 
         return True
@@ -57,7 +83,7 @@ class LaunchControl:
 
         return True
 
-    def wait_for_safe(self):
+    def remote_wait_for_safe(self):
         print(f'Waiting for the ready switch to be turned off.')
         self.gpio.wait_for_button_release('ready')
 
@@ -135,20 +161,27 @@ class LaunchControl:
 
     def receive_ready(self, args=None):
         print('Received ready signal')
+        self.current_state = 'ready'
+        self.gpio.relay_on('warn_lights')
 
     def receive_safe(self, args=None):
         print('Received safe signal')
+        self.current_state = 'safe'
+        self.gpio.all_relays_off()
 
     def receive_launch(self, args=None):
         print('Received launch signal')
+        if self.current_state == 'ready':
+            self.current_state = 'ignition'
+            self.gpio.relay_off('fill_solenoid')
+            self.gpio.relay_off('dump_solenoid')
+            self.gpio.relay_on('ignition')
 
     def receive_post_launch(self, args=None):
         print('Received post launch signal')
-
-        self.current_state = 'post-launch'
-
-        if not self.gpio.is_button_on('ready'):
-            self.send_safe()
+        if self.current_state == 'ignition':
+            self.gpio.relay_off('ignition')
+            self.current_state = 'post-ignition'
 
     def send_fill_on(self):
         self.comms.send_message(command='fill-relay-on')
@@ -165,17 +198,27 @@ class LaunchControl:
     def receive_fill_relay_on(self, args=None):
         print('Received fill relay on signal')
 
+        self.gpio.relay_on('fill_solenoid')
+
     def receive_fill_relay_off(self, args=None):
         print('Received fill relay off signal')
+
+        self.gpio.relay_off('fill_solenoid')
 
     def receive_dump_relay_on(self, args=None):
         print('Received dump relay on signal')
 
+        self.gpio.relay_on('dump_solenoid')
+
     def receive_dump_relay_off(self, args=None):
         print('Received dump relay off signal')
 
+        self.gpio.relay_off('dump_solenoid')
+
     def receive_start_cameras(self, args=None):
         print('Received start cameras signal')
+        self.current_state = 'start-cameras'
 
     def receive_stop_cameras(self, args=None):
         print('Received stop cameras signal')
+        self.current_state = 'stop-cameras'

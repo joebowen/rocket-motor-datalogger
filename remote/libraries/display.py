@@ -1,5 +1,5 @@
-import libraries.LCD_1in44 as LCD_1in44
-import libraries.LCD_Config as LCD_Config
+import remote.libraries.LCD_1in44 as LCD_1in44
+import remote.libraries.LCD_Config as LCD_Config
 
 from PIL import Image, ImageDraw, ImageFont, ImageColor
 
