@@ -105,7 +105,7 @@ class Comms:
 
         message_id = self.interface.sendText(
             text=json.dumps(message),
-            wantAck=True,
+            wantAck=False,
             wantResponse=False
         ).id
 

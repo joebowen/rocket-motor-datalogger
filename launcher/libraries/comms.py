@@ -88,9 +88,6 @@ class Comms:
     def on_receive(self, packet, interface):  # called when a packet arrives
         logging.debug(f'Received: {packet}')
 
-        if 'decoded' in packet and 'successId' in packet['decoded']:
-            self.success_ids.append(packet['decoded']['successId'])
-
         if 'decoded' in packet and 'text' in packet['decoded']:
             self.parse_message(packet['decoded']['text'])
 
@@ -105,8 +102,8 @@ class Comms:
 
         message_id = self.interface.sendText(
             text=json.dumps(message),
-            wantAck=True,
-            wantResponse=True
+            wantAck=False,
+            wantResponse=False
         ).id
 
         if wait_for_ack:
