@@ -5,6 +5,7 @@ import logging
 import json
 import sys
 import os
+import time
 
 from gpiozero import LED
 
@@ -143,6 +144,18 @@ def calibrate_mode(sensors, config, freq):
     save_config(sensors, config)
 
 
+def wait_for_ready(lc):
+    print('Waiting for the ready command to be sent.')
+    while lc.current_state != 'ready':
+        time.sleep(0.01)
+
+
+def wait_for_safe(lc):
+    print('Waiting for the safe command to be sent.')
+    while lc.current_state != 'safe':
+        time.sleep(0.01)
+
+
 @click.command()
 @click.option('-f', '--freq', type=int, default=1000, help='Data Logging Frequency - Default: 1000 Hz')
 @click.option('-c', '--calibrate', is_flag=True, help='Use this mode to calibrate the channels')
@@ -183,12 +196,12 @@ def main(freq, calibrate, remoteid, config, debug):
         lc = LaunchControl(remoteid, relays=relays)
 
         while True:
-            lc.wait_for_ready()
+            wait_for_ready(lc)
 
             data_logger = DataLogger(frequency=freq, sensors=sensors, maxruntime=0, raw_voltage=False, base_dir=base_dir)
             data_logger.start()
 
-            lc.wait_for_safe()
+            wait_for_safe(lc)
 
             data_logger.stop()
             data_logger.output_final_results()

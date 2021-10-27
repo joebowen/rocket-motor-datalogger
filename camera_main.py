@@ -35,6 +35,22 @@ sl = StreamToLogger(stdout_logger, logging.INFO)
 sys.stdout = sl
 
 
+def wait_for_start_cameras(lc):
+    print('Waiting for the start-cameras command to be sent.')
+    while lc.current_state != 'start-cameras':
+        time.sleep(0.1)
+
+    return True
+
+
+def wait_for_stop_cameras(lc):
+    print('Waiting for the stop-cameras command to be sent.')
+    while lc.current_state != 'stop-cameras':
+        time.sleep(0.1)
+
+    return True
+
+
 @click.command()
 @click.option('-p', '--prefix', type=str, default='pi-hq', help='Filename prefix')
 @click.option('-d', '--debug', is_flag=True, help='Turn on debugging')
@@ -65,7 +81,7 @@ def main(prefix, debug, remoteid, nogopro, nopreview):
         if not nopreview:
             camera.start_preview()
 
-        if not lc.wait_for_start_cameras():
+        if not wait_for_start_cameras(lc):
             continue
 
         if not nopreview:
@@ -76,7 +92,7 @@ def main(prefix, debug, remoteid, nogopro, nopreview):
         if not nogopro:
             gopro.start_recording()
 
-        if not lc.wait_for_stop_cameras():
+        if not wait_for_stop_cameras(lc):
             continue
 
         camera.stop_recording()

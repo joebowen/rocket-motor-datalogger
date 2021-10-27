@@ -86,13 +86,10 @@ class Comms:
     def on_receive(self, packet, interface):  # called when a packet arrives
         logging.debug(f'Received: {packet}')
 
-        if 'decoded' in packet and 'successId' in packet['decoded']:
-            self.success_ids.append(packet['decoded']['successId'])
-
         if 'decoded' in packet and 'text' in packet['decoded']:
-            self.parse_message(packet['decoded']['text'])
+            self.parse_message(packet['decoded']['text'], packet['messageId'])
 
-    def send_message(self, command, args=None, wait_for_ack=False):
+    def send_message(self, command, args=None):
         message = {
             'remoteid': self.remoteid,
             'command': command
@@ -107,12 +104,9 @@ class Comms:
             wantResponse=False
         ).id
 
-        if wait_for_ack:
-            self.wait_for_ack(message_id)
-
         return message_id
 
-    def parse_message(self, message):
+    def parse_message(self, message, message_id):
         try:
             message_json = json.loads(message)
         except json.decoder.JSONDecodeError:
@@ -125,10 +119,17 @@ class Comms:
 
             logging.debug(f'message_command: {message_command}')
 
-            if message_command in self.message_types:
-                message_args = None
+            if message_command == 'ack':
+                self.success_ids.append(message_json['args']['message_id'])
+
+            elif message_command in self.message_types:
+                message_args = {
+                    'message_id': message_id,
+                    'message_command': message_command
+                }
+
                 if 'args' in message_json:
-                    message_args = message_json['args']
+                    message_args['args'] = message_json['args']
 
                 logging.debug(f'Executing: {self.message_types[message_command]}')
 

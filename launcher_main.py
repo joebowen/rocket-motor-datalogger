@@ -3,6 +3,7 @@
 import click
 import logging
 import sys
+import time
 
 from gpiozero import LED
 
@@ -33,6 +34,18 @@ sl = StreamToLogger(stdout_logger, logging.INFO)
 sys.stdout = sl
 
 
+def wait_for_safe(lc):
+    print('Waiting for the safe command to be sent.')
+    while lc.current_state != 'safe':
+        time.sleep(0.01)
+
+
+def wait_for_ready(lc):
+    print('Waiting for the ready command to be sent.')
+    while lc.current_state != 'ready':
+        time.sleep(0.01)
+
+
 @click.command()
 @click.option('-r', '--remoteid', type=int, default=None, help='Remote ID')
 @click.option('-d', '--debug', is_flag=True, help='Turn on debugging')
@@ -50,9 +63,9 @@ def main(remoteid, debug):
     lc = LaunchControl(remoteid, relays=relays)
 
     while True:
-        lc.wait_for_ready()
+        wait_for_ready(lc)
 
-        lc.wait_for_safe()
+        wait_for_safe(lc)
 
 
 if __name__ == '__main__':
