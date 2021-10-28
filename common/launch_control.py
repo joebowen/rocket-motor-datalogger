@@ -152,6 +152,8 @@ class LaunchControl:
         self.send_ack(args['message_id'], 'stop-cameras')
 
     def send_ack(self, message_id, command):
+        print(f'Send Ack for {command} : {message_id}')
+
         args = {
             'message_id': message_id,
             'command': command
