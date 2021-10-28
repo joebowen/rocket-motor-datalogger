@@ -88,7 +88,7 @@ class Comms:
 
         if 'decoded' in packet and 'text' in packet['decoded']:
             print(f'packet: {packet}')
-            self.parse_message(packet['decoded']['text'], packet['messageId'])
+            self.parse_message(packet['decoded']['text'], packet['id'])
 
     def send_message(self, command, args=None):
         message = {
