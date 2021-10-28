@@ -51,6 +51,7 @@ class LaunchControl:
         self.comms.send_message(command='stop-cameras')
 
         while not self.comms.wait_for_ack(message_ids, timeout=1):
+            print('Waiting for safe...')
             message_ids.append(self.comms.send_message(command='safe'))
 
         print('Safe...')
