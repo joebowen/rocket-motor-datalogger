@@ -72,14 +72,14 @@ class LaunchControl:
         self.current_state = 'ready'
         self.gpio.relay_on('warn_lights')
         
-        return args['message_id']
+        self.send_ack(args['message_id'], 'ready')
 
     def receive_safe(self, args):
         print('Received safe signal')
         self.current_state = 'safe'
         self.gpio.all_relays_off()
         
-        return args['message_id']
+        self.send_ack(args['message_id'], 'safe')
 
     def receive_launch(self, args):
         print('Received launch signal')
@@ -89,7 +89,7 @@ class LaunchControl:
             self.gpio.relay_off('dump_solenoid')
             self.gpio.relay_on('ignition')
         
-        return args['message_id']
+        self.send_ack(args['message_id'], 'launch')
 
     def receive_post_launch(self, args):
         print('Received post launch signal')
@@ -97,7 +97,7 @@ class LaunchControl:
             self.gpio.relay_off('ignition')
             self.current_state = 'post-ignition'
         
-        return args['message_id']
+        self.send_ack(args['message_id'], 'post-ignition')
 
     def send_fill_on(self):
         self.comms.send_message(command='fill-relay-on')
@@ -116,30 +116,40 @@ class LaunchControl:
 
         self.gpio.relay_on('fill_solenoid')
         
-        return args['message_id']
+        self.send_ack(args['message_id'], 'fill-relay-on')
 
     def receive_fill_relay_off(self, args):
         print('Received fill relay off signal')
 
         self.gpio.relay_off('fill_solenoid')
 
+        self.send_ack(args['message_id'], 'fill-relay-off')
+
     def receive_dump_relay_on(self, args):
         print('Received dump relay on signal')
 
         self.gpio.relay_on('dump_solenoid')
+
+        self.send_ack(args['message_id'], 'dump-relay-on')
 
     def receive_dump_relay_off(self, args):
         print('Received dump relay off signal')
 
         self.gpio.relay_off('dump_solenoid')
 
+        self.send_ack(args['message_id'], 'dump-relay-off')
+
     def receive_start_cameras(self, args):
         print('Received start cameras signal')
         self.current_state = 'start-cameras'
 
+        self.send_ack(args['message_id'], 'start-cameras')
+
     def receive_stop_cameras(self, args):
         print('Received stop cameras signal')
         self.current_state = 'stop-cameras'
+
+        self.send_ack(args['message_id'], 'stop-cameras')
 
     def send_ack(self, message_id, command):
         args = {
