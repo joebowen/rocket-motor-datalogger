@@ -120,6 +120,7 @@ class Comms:
             logging.debug(f'message_command: {message_command}')
 
             if message_command == 'ack':
+                print(f'Received Message Ack: {message_json["args"]["message_id"]}')
                 self.success_ids.append(message_json['args']['message_id'])
 
             elif message_command in self.message_types:
