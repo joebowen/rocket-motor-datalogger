@@ -37,7 +37,7 @@ class LaunchControl:
     def send_ready(self):
         message_ids = [self.comms.send_message(command='ready')]
 
-        while not self.comms.wait_for_ack(message_ids, timeout=10):
+        while not self.comms.wait_for_ack(message_ids, timeout=60):
             message_ids.append(self.comms.send_message(command='ready'))
 
             if not self.gpio.is_button_on('ready'):
@@ -50,7 +50,7 @@ class LaunchControl:
         message_ids = [self.comms.send_message(command='safe')]
         self.comms.send_message(command='stop-cameras')
 
-        while not self.comms.wait_for_ack(message_ids, timeout=10):
+        while not self.comms.wait_for_ack(message_ids, timeout=60):
             print('Waiting for safe...')
             message_ids.append(self.comms.send_message(command='safe'))
 
@@ -61,7 +61,7 @@ class LaunchControl:
     def send_launch(self):
         message_id = self.comms.send_message(command='launch')
 
-        while not self.comms.wait_for_ack(message_id, timeout=10):
+        while not self.comms.wait_for_ack(message_id, timeout=60):
             if not self.gpio.is_button_on('ready'):
                 self.send_safe()
                 return False
