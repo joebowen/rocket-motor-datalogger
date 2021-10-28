@@ -30,10 +30,10 @@ class Comms:
 
         # self.interface.localNode.radioConfig.channel_settings.modem_config = 3
 
-        self.interface.localNode.radioConfig.preferences.position_broadcast_secs = 1
+        self.interface.localNode.radioConfig.preferences.position_broadcast_secs = 60
         # self.interface.localNode.radioConfig.preferences.gps_attempt_time = 300
         # self.interface.localNode.radioConfig.preferences.gps_update_interval = 5
-        self.interface.localNode.radioConfig.preferences.send_owner_interval = 5
+        self.interface.localNode.radioConfig.preferences.send_owner_interval = 60
         self.interface.localNode.radioConfig.preferences.wait_bluetooth_secs = 120
         self.interface.localNode.radioConfig.preferences.screen_on_secs = 300
         self.interface.localNode.radioConfig.preferences.phone_timeout_secs = 900
