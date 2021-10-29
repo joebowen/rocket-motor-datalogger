@@ -22,7 +22,7 @@ class Comms:
 
         self.wait_till_connected()
 
-        self.set_config()
+        # self.set_config()
 
     def set_config(self):
         self.interface.localNode.radioConfig.preferences.is_low_power = False
