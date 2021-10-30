@@ -86,7 +86,7 @@ class Comms:
         return True
 
     def on_receive(self, packet, interface):  # called when a packet arrives
-        logging.debug(f'Received: {packet}')
+        logging.info(f'Received: {packet}')
 
         if 'decoded' in packet and 'text' in packet['decoded']:
             print(f'packet: {packet}')
