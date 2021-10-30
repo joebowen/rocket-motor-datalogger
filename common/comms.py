@@ -26,7 +26,7 @@ class Comms:
 
     def set_config(self):
         print(self.interface.localNode.radioConfig)
-        print(dir(self.interface.localNode.radioConfig))
+        print(dir(self.interface.localNode.channels))
         self.interface.localNode.radioConfig.preferences.is_low_power = False
         self.interface.localNode.radioConfig.preferences.is_router = False
 
