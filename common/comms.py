@@ -22,9 +22,10 @@ class Comms:
 
         self.wait_till_connected()
 
-        # self.set_config()
+        self.set_config()
 
     def set_config(self):
+        print(self.interface.localNode.radioConfig)
         self.interface.localNode.radioConfig.preferences.is_low_power = False
         self.interface.localNode.radioConfig.preferences.is_router = False
 
@@ -34,7 +35,7 @@ class Comms:
         self.interface.localNode.radioConfig.preferences.gps_attempt_time = 300
         self.interface.localNode.radioConfig.preferences.gps_update_interval = 300
         self.interface.localNode.radioConfig.preferences.send_owner_interval = 2
-        self.interface.localNode.radioConfig.preferences.wait_bluetooth_secs = 1
+        self.interface.localNode.radioConfig.preferences.wait_bluetooth_secs = 60
         self.interface.localNode.radioConfig.preferences.screen_on_secs = 300
         self.interface.localNode.radioConfig.preferences.phone_timeout_secs = 900
         self.interface.localNode.radioConfig.preferences.phone_sds_timeout_sec = 7200

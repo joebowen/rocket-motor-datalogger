@@ -4,8 +4,6 @@ from common.comms import Comms
 
 class LaunchControl:
     def __init__(self, remoteid, display=None, relays=None, buttons=None):
-        self.gpio = GPIO(relays=relays, buttons=buttons)
-        self.gpio.all_relays_off()
         self.current_state = 'safe'
         self.filling = False
         self.dumping = False
@@ -25,6 +23,9 @@ class LaunchControl:
 
         self.display = display
         self.comms = Comms(message_types, remoteid=remoteid, display=display)
+
+        self.gpio = GPIO(relays=relays, buttons=buttons)
+        self.gpio.all_relays_off()
 
     def send_start_cameras(self):
         message_ids = [self.comms.send_message(command='start-cameras')]
