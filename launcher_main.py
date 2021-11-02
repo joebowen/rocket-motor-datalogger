@@ -62,6 +62,8 @@ def main(remoteid, debug):
 
     lc = LaunchControl(remoteid, relays=relays)
 
+    wait_for_safe(lc)
+
     while True:
         wait_for_ready(lc)
 
