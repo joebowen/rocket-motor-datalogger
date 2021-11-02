@@ -30,8 +30,6 @@ class Comms:
 
         time.sleep(30)
 
-        self.interface = meshtastic.SerialInterface()
-
         self.wait_till_connected()
 
     def set_config(self):
