@@ -80,6 +80,16 @@ class LaunchControl:
 
         return True
 
+    def send_post_launch(self):
+        message_id = self.comms.send_message(command='post-launch')
+
+        while not self.comms.wait_for_ack(message_id):
+            if not self.gpio.is_button_on('ready'):
+                self.send_safe()
+                return False
+
+        return True
+
     def receive_ready(self, args):
         logging.info('Received ready signal')
         self.current_state = 'ready'
