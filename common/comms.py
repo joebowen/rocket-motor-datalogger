@@ -24,6 +24,16 @@ class Comms:
 
         self.set_config()
 
+    def reboot_meshnode(self):
+        logging.info(f'Rebooting local mesh node')
+        self.interface.localNode.reboot(secs=1)
+
+        time.sleep(30)
+
+        self.interface = meshtastic.SerialInterface()
+
+        self.wait_till_connected()
+
     def set_config(self):
         # logging.info(self.interface.localNode.radioConfig)
         # logging.info(dir(self.interface.localNode.channels))
@@ -49,6 +59,8 @@ class Comms:
         self.interface.localNode.writeConfig()
 
         logging.info('Wrote out config')
+
+        self.reboot_meshnode()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.interface.close()
