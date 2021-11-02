@@ -43,7 +43,7 @@ class LaunchControl:
         logging.info(f'Sending Ready Command')
         message_ids = [self.comms.send_message(command='ready')]
 
-        while not self.comms.wait_for_ack(message_ids, timeout=60):
+        while not self.comms.wait_for_ack(message_ids, timeout=10):
             message_ids.append(self.comms.send_message(command='ready'))
 
             if not self.gpio.is_button_on('ready'):
