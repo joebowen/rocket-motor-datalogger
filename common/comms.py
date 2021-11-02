@@ -30,7 +30,7 @@ class Comms:
         self.interface.localNode.radioConfig.preferences.is_low_power = False
         self.interface.localNode.radioConfig.preferences.is_router = False
 
-        self.interface.localNode.radioConfig.channels[0].settings.modem_config = 2
+        self.interface.localNode.channels[0].settings.modem_config = 2
 
         self.interface.localNode.radioConfig.preferences.position_broadcast_secs = 300
         self.interface.localNode.radioConfig.preferences.gps_attempt_time = 300
