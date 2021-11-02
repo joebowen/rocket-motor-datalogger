@@ -57,11 +57,10 @@ class LaunchControl:
         self.comms.send_message(command='stop-cameras')
 
     def send_safe(self):
-        # self.send_stop_cameras()
         logging.info(f'Sending safe command.')
         message_ids = [self.comms.send_message(command='safe')]
 
-        while not self.comms.wait_for_ack(message_ids, timeout=60):
+        while not self.comms.wait_for_ack(message_ids, timeout=10):
             logging.info('Waiting for safe...')
             message_ids.append(self.comms.send_message(command='safe'))
 
@@ -73,7 +72,10 @@ class LaunchControl:
         logging.info('Sending Launch command!')
         message_ids = [self.comms.send_message(command='launch')]
 
-        while not self.comms.wait_for_ack(message_ids, timeout=60):
+        while not self.comms.wait_for_ack(message_ids, timeout=10):
+            logging.info('Waiting for launch...')
+            message_ids.append(self.comms.send_message(command='launch'))
+
             if not self.gpio.is_button_on('ready'):
                 self.send_safe()
                 return False
@@ -81,9 +83,13 @@ class LaunchControl:
         return True
 
     def send_post_launch(self):
-        message_id = self.comms.send_message(command='post-launch')
+        logging.info('Sending Post Launch command.')
+        message_ids = [self.comms.send_message(command='post-launch')]
 
-        while not self.comms.wait_for_ack(message_id):
+        while not self.comms.wait_for_ack(message_ids, timeout=10):
+            logging.info('Waiting for post launch...')
+            message_ids.append(self.comms.send_message(command='post-launch'))
+
             if not self.gpio.is_button_on('ready'):
                 self.send_safe()
                 return False
@@ -120,7 +126,7 @@ class LaunchControl:
             self.gpio.relay_off('ignition')
             self.current_state = 'post-ignition'
         
-        self.send_ack(args['message_id'], 'post-ignition')
+        self.send_ack(args['message_id'], 'post-launch')
 
     def send_fill_on(self):
         logging.info('Sending Fill Relay On signal')
