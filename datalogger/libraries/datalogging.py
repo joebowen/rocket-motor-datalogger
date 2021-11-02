@@ -500,7 +500,7 @@ class DataLogger:
         End Time: {end_timestamp:.1f} s  
         """
 
-        print(stats)
+        logging.info(stats)
 
         with open(f'{self.base_dir}/{self.timestamp_label}/stats.txt', 'w') as f:
             f.write(stats)

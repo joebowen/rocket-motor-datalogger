@@ -1,3 +1,5 @@
+import logging
+
 from common.gpio import GPIO
 from common.comms import Comms
 
@@ -28,14 +30,17 @@ class LaunchControl:
         self.gpio.all_relays_off()
 
     def send_start_cameras(self):
+        logging.info(f'Starting Cameras.')
         message_ids = [self.comms.send_message(command='start-cameras')]
 
         # while not self.comms.wait_for_ack(message_ids, timeout=1):
+        #     logging.info('Waiting for cameras to start...')
         #     message_ids.append(self.comms.send_message(command='start-cameras'))
 
         return True
 
     def send_ready(self):
+        logging.info(f'Sending Ready Command')
         message_ids = [self.comms.send_message(command='ready')]
 
         while not self.comms.wait_for_ack(message_ids, timeout=60):
@@ -47,19 +52,25 @@ class LaunchControl:
 
         return True
 
-    def send_safe(self):
-        message_ids = [self.comms.send_message(command='safe')]
+    def send_stop_cameras(self):
+        logging.info(f'Sending stop cameras command.')
         self.comms.send_message(command='stop-cameras')
 
+    def send_safe(self):
+        self.send_stop_cameras()
+        logging.info(f'Sending safe command.')
+        message_ids = [self.comms.send_message(command='safe')]
+
         while not self.comms.wait_for_ack(message_ids, timeout=60):
-            print('Waiting for safe...')
+            logging.info('Waiting for safe...')
             message_ids.append(self.comms.send_message(command='safe'))
 
-        print('Safe...')
+        logging.info('Safe...')
         self.display.add_message('SAFE')
         self.current_state = 'safe'
 
     def send_launch(self):
+        logging.info('Sending Launch command!')
         message_id = self.comms.send_message(command='launch')
 
         while not self.comms.wait_for_ack(message_id, timeout=60):
@@ -70,21 +81,21 @@ class LaunchControl:
         return True
 
     def receive_ready(self, args):
-        print('Received ready signal')
+        logging.info('Received ready signal')
         self.current_state = 'ready'
         self.gpio.relay_on('warn_lights')
         
         self.send_ack(args['message_id'], 'ready')
 
     def receive_safe(self, args):
-        print('Received safe signal')
+        logging.info('Received safe signal')
         self.current_state = 'safe'
         self.gpio.all_relays_off()
         
         self.send_ack(args['message_id'], 'safe')
 
     def receive_launch(self, args):
-        print('Received launch signal')
+        logging.info('Received launch signal')
         if self.current_state == 'ready':
             self.current_state = 'ignition'
             self.gpio.relay_off('fill_solenoid')
@@ -94,7 +105,7 @@ class LaunchControl:
         self.send_ack(args['message_id'], 'launch')
 
     def receive_post_launch(self, args):
-        print('Received post launch signal')
+        logging.info('Received post launch signal')
         if self.current_state == 'ignition':
             self.gpio.relay_off('ignition')
             self.current_state = 'post-ignition'
@@ -102,59 +113,63 @@ class LaunchControl:
         self.send_ack(args['message_id'], 'post-ignition')
 
     def send_fill_on(self):
+        logging.info('Sending Fill Relay On signal')
         self.comms.send_message(command='fill-relay-on')
 
     def send_fill_off(self):
+        logging.info('Sending Fill Relay Off signal')
         self.comms.send_message(command='fill-relay-off')
 
     def send_dump_on(self):
+        logging.info('Sending Dump Relay On signal')
         self.comms.send_message(command='dump-relay-on')
 
     def send_dump_off(self):
+        logging.info('Sending Dump Relay Off signal')
         self.comms.send_message(command='dump-relay-off')
 
     def receive_fill_relay_on(self, args):
-        print('Received fill relay on signal')
+        logging.info('Received fill relay on signal')
 
         self.gpio.relay_on('fill_solenoid')
         
         self.send_ack(args['message_id'], 'fill-relay-on')
 
     def receive_fill_relay_off(self, args):
-        print('Received fill relay off signal')
+        logging.info('Received fill relay off signal')
 
         self.gpio.relay_off('fill_solenoid')
 
         self.send_ack(args['message_id'], 'fill-relay-off')
 
     def receive_dump_relay_on(self, args):
-        print('Received dump relay on signal')
+        logging.info('Received dump relay on signal')
 
         self.gpio.relay_on('dump_solenoid')
 
         self.send_ack(args['message_id'], 'dump-relay-on')
 
     def receive_dump_relay_off(self, args):
-        print('Received dump relay off signal')
+        logging.info('Received dump relay off signal')
 
         self.gpio.relay_off('dump_solenoid')
 
         self.send_ack(args['message_id'], 'dump-relay-off')
 
     def receive_start_cameras(self, args):
-        print('Received start cameras signal')
+        logging.info('Received start cameras signal')
         self.current_state = 'start-cameras'
 
         self.send_ack(args['message_id'], 'start-cameras')
 
     def receive_stop_cameras(self, args):
-        print('Received stop cameras signal')
+        logging.info('Received stop cameras signal')
         self.current_state = 'stop-cameras'
 
         self.send_ack(args['message_id'], 'stop-cameras')
 
     def send_ack(self, message_id, command):
-        print(f'Send Ack for {command} : {message_id}')
+        logging.info(f'Send Ack for {command} : {message_id}')
 
         args = {
             'message_id': message_id,

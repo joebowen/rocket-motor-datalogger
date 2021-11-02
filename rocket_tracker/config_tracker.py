@@ -23,7 +23,7 @@ class Comms:
         while not self.connected:
             time.sleep(0.01)
 
-        print('Meshtastic comms successfully connected')
+        logging.info('Meshtastic comms successfully connected')
 
     def on_connection(self, interface, topic=pub.AUTO_TOPIC):
         self.connected = True
@@ -50,7 +50,7 @@ class Comms:
 
         self.interface.localNode.writeConfig()
 
-        print('Wrote out config')
+        logging.info('Wrote out config')
 
 
 def main():

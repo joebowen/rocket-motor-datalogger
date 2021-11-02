@@ -36,7 +36,7 @@ sys.stdout = sl
 
 
 def wait_for_start_cameras(lc):
-    print('Waiting for the start-cameras command to be sent.')
+    logging.info('Waiting for the start-cameras command to be sent.')
     while lc.current_state != 'start-cameras':
         time.sleep(0.1)
 
@@ -44,7 +44,7 @@ def wait_for_start_cameras(lc):
 
 
 def wait_for_stop_cameras(lc):
-    print('Waiting for the stop-cameras command to be sent.')
+    logging.info('Waiting for the stop-cameras command to be sent.')
     while lc.current_state != 'stop-cameras':
         time.sleep(0.1)
 

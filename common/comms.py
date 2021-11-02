@@ -25,8 +25,8 @@ class Comms:
         self.set_config()
 
     def set_config(self):
-        print(self.interface.localNode.radioConfig)
-        print(dir(self.interface.localNode.channels))
+        logging.info(self.interface.localNode.radioConfig)
+        logging.info(dir(self.interface.localNode.channels))
         self.interface.localNode.radioConfig.preferences.is_low_power = False
         self.interface.localNode.radioConfig.preferences.is_router = False
 
@@ -48,7 +48,7 @@ class Comms:
 
         self.interface.localNode.writeConfig()
 
-        print('Wrote out config')
+        logging.info('Wrote out config')
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.interface.close()
@@ -123,7 +123,7 @@ class Comms:
             logging.debug(f'message_command: {message_command}')
 
             if message_command == 'ack':
-                print(f'Received Message Ack: {message_json["args"]["message_id"]}')
+                logging.info(f'Received Message Ack: {message_json["args"]["message_id"]}')
                 self.success_ids.append(message_json['args']['message_id'])
 
             elif message_command in self.message_types:

@@ -35,13 +35,13 @@ sys.stdout = sl
 
 
 def wait_for_safe(lc):
-    print('Waiting for the safe command to be sent.')
+    logging.info('Waiting for the safe command to be sent.')
     while lc.current_state != 'safe':
         time.sleep(0.01)
 
 
 def wait_for_ready(lc):
-    print('Waiting for the ready command to be sent.')
+    logging.info('Waiting for the ready command to be sent.')
     while lc.current_state != 'ready':
         time.sleep(0.01)
 

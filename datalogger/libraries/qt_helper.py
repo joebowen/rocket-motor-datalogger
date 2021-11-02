@@ -210,7 +210,7 @@ class CustomFigCanvas(FigureCanvas, TimedAnimation):
             TimedAnimation._step(self, *args)
         except Exception:
             self.abc += 1
-            # print(str(self.abc))
+            # logging.info(str(self.abc))
             TimedAnimation._stop(self)
             pass
 

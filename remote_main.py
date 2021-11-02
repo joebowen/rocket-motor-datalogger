@@ -36,21 +36,21 @@ sys.stdout = sl
 
 
 def wait_for_safe(lc):
-    print(f'Waiting for the ready switch to be turned off.')
+    logging.info(f'Waiting for the ready switch to be turned off.')
     lc.gpio.wait_for_button_release('ready')
 
     lc.send_safe()
 
 
 def wait_for_ready(lc):
-    print(f'Waiting for the ready switch to be turned on.')
+    logging.info(f'Waiting for the ready switch to be turned on.')
     lc.gpio.wait_for_button('ready')
 
     lc.send_start_cameras()
     is_ready = lc.send_ready()
 
     if is_ready:
-        print('Ready...')
+        logging.info('Ready...')
         lc.display.add_message('READY')
         lc.current_state = 'ready'
 
@@ -58,7 +58,7 @@ def wait_for_ready(lc):
 
 
 def wait_for_launch(lc, timeout=45):
-    print(f'Waiting for the launch switch to be pushed.')
+    logging.info(f'Waiting for the launch switch to be pushed.')
     while not lc.gpio.is_button_on('launch'):
         if not lc.gpio.is_button_on('ready'):
             lc.send_safe()
@@ -83,7 +83,7 @@ def wait_for_launch(lc, timeout=45):
     is_launch = lc.send_launch()
 
     if is_launch:
-        print('Launch...')
+        logging.info('Launch...')
         lc.display.add_message('LAUNCH')
         lc.current_state = 'launch'
 
@@ -107,7 +107,7 @@ def main(debug, remoteid):
     if not remoteid:
         remoteid = random.randint(0, 9999)
 
-    print(f'remote id: {remoteid}')
+    logging.info(f'remote id: {remoteid}')
 
     disp = Display(remoteid)
 
