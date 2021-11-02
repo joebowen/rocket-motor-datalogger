@@ -44,7 +44,7 @@ class Comms:
         self.interface.localNode.radioConfig.preferences.sds_secs = 31536000
         self.interface.localNode.radioConfig.preferences.ls_secs = 3600
 
-        # self.interface.localNode.radioConfig.channel_settings.tx_power = 100
+        self.interface.localNode.channels[0].settings.tx_power = 0
 
         self.interface.localNode.writeConfig()
 
