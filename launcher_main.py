@@ -37,13 +37,13 @@ sys.stdout = sl
 def wait_for_safe(lc):
     logging.info('Waiting for the safe command to be sent.')
     while lc.current_state != 'safe':
-        time.sleep(0.01)
+        time.sleep(0.5)
 
 
 def wait_for_ready(lc):
     logging.info('Waiting for the ready command to be sent.')
     while lc.current_state != 'ready':
-        time.sleep(0.01)
+        time.sleep(0.5)
 
 
 @click.command()

@@ -2,6 +2,7 @@
 
 import meshtastic
 import time
+import logging
 
 from pubsub import pub
 
@@ -21,7 +22,7 @@ class Comms:
 
     def wait_till_connected(self):
         while not self.connected:
-            time.sleep(0.01)
+            time.sleep(1)
 
         logging.info('Meshtastic comms successfully connected')
 

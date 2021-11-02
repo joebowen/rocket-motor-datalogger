@@ -25,8 +25,8 @@ class Comms:
         self.set_config()
 
     def set_config(self):
-        logging.info(self.interface.localNode.radioConfig)
-        logging.info(dir(self.interface.localNode.channels))
+        # logging.info(self.interface.localNode.radioConfig)
+        # logging.info(dir(self.interface.localNode.channels))
         self.interface.localNode.radioConfig.preferences.is_low_power = False
         self.interface.localNode.radioConfig.preferences.is_router = False
 
@@ -35,9 +35,9 @@ class Comms:
         self.interface.localNode.radioConfig.preferences.position_broadcast_secs = 300
         self.interface.localNode.radioConfig.preferences.gps_attempt_time = 300
         self.interface.localNode.radioConfig.preferences.gps_update_interval = 300
-        self.interface.localNode.radioConfig.preferences.send_owner_interval = 2
+        self.interface.localNode.radioConfig.preferences.send_owner_interval = 10
         self.interface.localNode.radioConfig.preferences.wait_bluetooth_secs = 60
-        self.interface.localNode.radioConfig.preferences.screen_on_secs = 300
+        self.interface.localNode.radioConfig.preferences.screen_on_secs = 900
         self.interface.localNode.radioConfig.preferences.phone_timeout_secs = 900
         self.interface.localNode.radioConfig.preferences.phone_sds_timeout_sec = 7200
         self.interface.localNode.radioConfig.preferences.mesh_sds_timeout_secs = 7200
@@ -55,7 +55,7 @@ class Comms:
 
     def wait_till_connected(self):
         while not self.connected:
-            time.sleep(0.01)
+            time.sleep(1)
 
         logging.info('Meshtastic comms successfully connected')
 
@@ -73,7 +73,7 @@ class Comms:
 
         count = 0
         while all(message_id not in self.success_ids for message_id in message_ids):
-            time.sleep(0.01)
+            time.sleep(1)
 
             count += 1
             if count % 2000:
