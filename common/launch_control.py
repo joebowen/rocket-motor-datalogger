@@ -43,7 +43,7 @@ class LaunchControl:
         logging.info(f'Sending Ready Command')
         message_ids = [self.comms.send_message(command='ready')]
 
-        while not self.comms.wait_for_ack(message_ids, timeout=10):
+        while not self.comms.wait_for_ack(message_ids, timeout=60):
             message_ids.append(self.comms.send_message(command='ready'))
 
             if not self.gpio.is_button_on('ready'):
@@ -60,7 +60,7 @@ class LaunchControl:
         logging.info(f'Sending safe command.')
         message_ids = [self.comms.send_message(command='safe')]
 
-        while not self.comms.wait_for_ack(message_ids, timeout=10):
+        while not self.comms.wait_for_ack(message_ids, timeout=60):
             logging.info('Waiting for safe...')
             message_ids.append(self.comms.send_message(command='safe'))
 
@@ -72,7 +72,7 @@ class LaunchControl:
         logging.info('Sending Launch command!')
         message_ids = [self.comms.send_message(command='launch')]
 
-        while not self.comms.wait_for_ack(message_ids, timeout=10):
+        while not self.comms.wait_for_ack(message_ids, timeout=60):
             logging.info('Waiting for launch...')
             message_ids.append(self.comms.send_message(command='launch'))
 
@@ -86,7 +86,7 @@ class LaunchControl:
         logging.info('Sending Post Launch command.')
         message_ids = [self.comms.send_message(command='post-launch')]
 
-        while not self.comms.wait_for_ack(message_ids, timeout=10):
+        while not self.comms.wait_for_ack(message_ids, timeout=60):
             logging.info('Waiting for post launch...')
             message_ids.append(self.comms.send_message(command='post-launch'))
 
