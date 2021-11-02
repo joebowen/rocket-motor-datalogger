@@ -83,7 +83,7 @@ class Comms:
 
         count = 0
         while all(message_id not in self.success_ids for message_id in message_ids):
-            time.sleep(1)
+            time.sleep(0.1)
 
             count += 1
             if count % 2000:

@@ -57,7 +57,7 @@ class LaunchControl:
         self.comms.send_message(command='stop-cameras')
 
     def send_safe(self):
-        self.send_stop_cameras()
+        # self.send_stop_cameras()
         logging.info(f'Sending safe command.')
         message_ids = [self.comms.send_message(command='safe')]
 

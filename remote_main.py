@@ -46,7 +46,7 @@ def wait_for_ready(lc):
     logging.info(f'Waiting for the ready switch to be turned on.')
     lc.gpio.wait_for_button('ready')
 
-    lc.send_start_cameras()
+    # lc.send_start_cameras()
     is_ready = lc.send_ready()
 
     if is_ready:
