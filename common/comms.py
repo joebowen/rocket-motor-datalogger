@@ -98,6 +98,9 @@ class Comms:
     def on_receive(self, packet, interface):  # called when a packet arrives
         logging.debug(f'Received: {packet}')
 
+        if 'priority' in packet and packet['priority'] == 'ACK':
+            self.success_ids.append(packet['requestId'])
+
         if 'decoded' in packet and 'text' in packet['decoded']:
             logging.info(f'packet: {packet}')
             self.parse_message(packet['decoded']['text'], packet['id'])
@@ -132,11 +135,7 @@ class Comms:
 
             logging.debug(f'message_command: {message_command}')
 
-            if message_command == 'ack':
-                logging.info(f'Received Message Ack: {message_json["args"]["message_id"]}')
-                self.success_ids.append(message_json['args']['message_id'])
-
-            elif message_command in self.message_types:
+            if message_command in self.message_types:
                 message_args = {
                     'message_id': message_id,
                     'message_command': message_command
