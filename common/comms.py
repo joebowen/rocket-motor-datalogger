@@ -99,7 +99,7 @@ class Comms:
         logging.debug(f'Received: {packet}')
 
         if 'priority' in packet and packet['priority'] == 'ACK':
-            self.success_ids.append(packet['requestId'])
+            self.success_ids.append(packet['decoded']['requestId'])
 
         if 'decoded' in packet and 'text' in packet['decoded']:
             logging.info(f'packet: {packet}')
