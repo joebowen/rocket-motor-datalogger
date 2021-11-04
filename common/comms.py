@@ -40,6 +40,8 @@ class Comms:
 
         self.wait_till_connected()
 
+        self.reboot_meshnode()
+
     def set_config(self):
         # logging.info(self.interface.localNode.radioConfig)
         # logging.info(dir(self.interface.localNode.channels))
