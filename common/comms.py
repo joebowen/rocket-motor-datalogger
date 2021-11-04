@@ -14,6 +14,7 @@ class Comms:
 
         pub.subscribe(self.on_receive, 'meshtastic.receive')
         pub.subscribe(self.on_connection, "meshtastic.connection.established")
+        pub.subscribe(self.on_radio_fault, "meshtastic.connection.lost")
 
         self.connected = False
         self.success_ids = []
@@ -29,6 +30,13 @@ class Comms:
         self.interface.localNode.reboot(secs=1)
 
         time.sleep(30)
+
+        self.wait_till_connected()
+
+    def on_radio_fault(self, interface, topic=pub.AUTO_TOPIC):
+        time.sleep(10)
+
+        self.interface = meshtastic.SerialInterface()
 
         self.wait_till_connected()
 
