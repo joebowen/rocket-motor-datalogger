@@ -36,11 +36,14 @@ class Comms:
     def on_radio_fault(self, interface, topic=pub.AUTO_TOPIC):
         time.sleep(10)
 
-        self.interface = meshtastic.SerialInterface()
+        try:
+            self.interface = meshtastic.SerialInterface()
 
-        self.wait_till_connected()
+            self.wait_till_connected()
 
-        self.reboot_meshnode()
+            self.reboot_meshnode()
+        except Exception as e:
+            logging.debug(f'Exception: {e}')
 
     def set_config(self):
         # logging.info(self.interface.localNode.radioConfig)
