@@ -52,7 +52,7 @@ Camera()
 
   pip3 install --user --no-input --upgrade -r camera/requirements.txt
 
-  SetupStartUp "ccamera_main.py" "${RemoteID}"
+  SetupStartUp "camera_main.py" "${RemoteID}"
 }
 
 ############################################################
