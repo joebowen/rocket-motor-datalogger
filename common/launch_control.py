@@ -23,11 +23,12 @@ class LaunchControl:
             'stop-cameras': self.receive_stop_cameras
         }
 
+        self.gpio = GPIO(relays=relays, buttons=buttons)
+        self.gpio.all_relays_off()
+
         self.display = display
         self.comms = Comms(message_types, remoteid=remoteid, display=display)
 
-        self.gpio = GPIO(relays=relays, buttons=buttons)
-        self.gpio.all_relays_off()
 
     def send_start_cameras(self):
         logging.info(f'Starting Cameras.')
