@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import meshtastic
+import meshtastic.serial_interface
 import time
 import logging
 
@@ -13,7 +14,7 @@ class Comms:
 
         self.connected = False
 
-        self.interface = meshtastic.SerialInterface(devPath='/dev/ttyUSB0')
+        self.interface = meshtastic.serial_interface.SerialInterface(devPath='/dev/ttyUSB0')
 
         self.wait_till_connected()
 
