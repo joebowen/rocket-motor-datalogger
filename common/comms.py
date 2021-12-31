@@ -1,4 +1,5 @@
 import meshtastic
+import meshtastic.serial_interface
 import json
 import time
 import logging
@@ -19,7 +20,7 @@ class Comms:
         self.connected = False
         self.success_ids = []
 
-        self.interface = meshtastic.SerialInterface()
+        self.interface = meshtastic.serial_interface.SerialInterface()
 
         self.wait_till_connected()
 
@@ -37,7 +38,7 @@ class Comms:
         time.sleep(10)
 
         try:
-            self.interface = meshtastic.SerialInterface()
+            self.interface = meshtastic.serial_interface.SerialInterface()
 
             self.wait_till_connected()
 
